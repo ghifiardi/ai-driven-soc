@@ -1,0 +1,10 @@
+2025-07-05 17:22:50,514 - LangGraphADA - INFO - Attempting to load pickle model from gs://security-models-chronicle-dev-2be9/anomaly-detection/isolation_forest.pkl
+2025-07-05 17:22:50,548 - LangGraphADA - WARNING - Could not load model 'anomaly-detection/isolation_forest.pkl' from GCS: 403 GET https://storage.googleapis.com/download/storage/v1/b/security-models-chronicle-dev-2be9/o/anomaly-detection%2Fisolation_forest.pkl?alt=media: gatra-user-bigquery@chronicle-dev-2be9.iam.gserviceaccount.com does not have storage.objects.get access to the Google Cloud Storage object. Permission &#39;storage.objects.get&#39; denied on resource (or it may not exist).: ('Request failed with status code', 403, 'Expected one of', <HTTPStatus.OK: 200>, <HTTPStatus.PARTIAL_CONTENT: 206>)
+2025-07-05 17:22:50,548 - LangGraphADA - INFO - Creating new Isolation Forest model as a fallback.
+2025-07-05 17:22:50,548 - LangGraphADA - INFO - Attempting to load joblib model from gs://security-models-chronicle-dev-2be9/supervised_model_v1.joblib
+2025-07-05 17:22:50,571 - LangGraphADA - WARNING - Could not load model 'supervised_model_v1.joblib' from GCS: 403 GET https://storage.googleapis.com/download/storage/v1/b/security-models-chronicle-dev-2be9/o/supervised_model_v1.joblib?alt=media: gatra-user-bigquery@chronicle-dev-2be9.iam.gserviceaccount.com does not have storage.objects.get access to the Google Cloud Storage object. Permission &#39;storage.objects.get&#39; denied on resource (or it may not exist).: ('Request failed with status code', 403, 'Expected one of', <HTTPStatus.OK: 200>, <HTTPStatus.PARTIAL_CONTENT: 206>)
+2025-07-05 17:22:50,572 - LangGraphADA - WARNING - Supervised model could not be loaded. Validation will fall back to default behavior.
+2025-07-05 17:22:50,581 - LangGraphADA - INFO - LangGraph ADA initialized successfully
+2025-07-05 17:22:50,584 - LangGraphADA - INFO - Preprocessing data
+2025-07-05 17:22:50,585 - LangGraphADA - INFO - Extracting features
+2025-07-05 17:22:50,588 - LangGraphADA - INFO - Detecting anomalies
