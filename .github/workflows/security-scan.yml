@@ -24,7 +24,6 @@ jobs:
           python-version: "3.11"
 
       - name: Install orchestrator (latest from GitHub)
-
         run: |
           pip install --upgrade pip setuptools wheel
           pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
