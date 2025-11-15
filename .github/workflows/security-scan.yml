@@ -28,7 +28,10 @@ jobs:
           pip install --upgrade pip setuptools wheel
           pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
           echo "Installed orchestrator version:"
-          python -c "from proactive_security_orchestrator import __version__; print(f'proactive-security-orchestrator v{__version__}')"
+          python << 'EOF'
+from proactive_security_orchestrator import __version__
+print("proactive-security-orchestrator v" + __version__)
+EOF
 
       - name: Install Semgrep + Gitleaks
         run: |
@@ -50,8 +53,7 @@ jobs:
           security-scan scan . \
             --format sarif \
             --output findings.sarif \
-            --config "$CONFIG_PATH" \
-            --allow-empty
+            --config "$CONFIG_PATH"
           echo "Scan completed. SARIF exists?"
           ls -lah findings.sarif || echo "SARIF NOT FOUND"
 
