@@ -50,11 +50,8 @@ jobs:
           security-scan scan . \
             --format sarif \
             --output findings.sarif \
-            --config "$CONFIG_PATH" || true
-
-          if [ ! -f findings.sarif ]; then
-            echo '{"version":"2.1.0","runs":[]}' > findings.sarif
-          fi
+            --config "$CONFIG_PATH" \
+            --allow-empty
           echo "Scan completed. SARIF exists?"
           ls -lah findings.sarif || echo "SARIF NOT FOUND"
 
