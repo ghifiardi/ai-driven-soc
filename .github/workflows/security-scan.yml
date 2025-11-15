@@ -11,59 +11,59 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Checkout target repository
-        uses: actions/checkout@v4
+    - name: Checkout target repository
+      uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
 
-      - name: Install orchestrator (latest from GitHub)
-        run: |
-          pip install --upgrade pip setuptools wheel
-          pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
+    - name: Install orchestrator (latest from GitHub)
+      run: |
+        pip install --upgrade pip setuptools wheel
+        pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
 
-          echo "Installed orchestrator version:"
-          python << 'EOF'
+        echo "Installed orchestrator version:"
+        python <<'EOF'
 from proactive_security_orchestrator import __version__
 print("proactive-security-orchestrator v" + __version__)
 EOF
 
-      - name: Install Semgrep + Gitleaks
-        run: |
-          pip install "semgrep==1.143.1"
-          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
-          tar -xzf gitleaks_8.18.0_linux_x64.tar.gz gitleaks
-          sudo mv gitleaks /usr/local/bin/gitleaks
-          gitleaks version
-          semgrep --version
+    - name: Install Semgrep + Gitleaks
+      run: |
+        pip install "semgrep==1.143.1"
+        wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
+        tar -xzf gitleaks_8.18.0_linux_x64.tar.gz gitleaks
+        sudo mv gitleaks /usr/local/bin/gitleaks
+        gitleaks version
+        semgrep --version
 
-      - name: Determine orchestrator config path
-        run: |
-          echo "CONFIG_PATH=${GITHUB_WORKSPACE}/config" >> $GITHUB_ENV
-          echo "Using CONFIG_PATH=${GITHUB_WORKSPACE}/config"
+    - name: Determine orchestrator config path
+      run: |
+        echo "CONFIG_PATH=${GITHUB_WORKSPACE}/config" >> $GITHUB_ENV
+        echo "Using CONFIG_PATH=${GITHUB_WORKSPACE}/config"
 
-      - name: Run security scan
-        continue-on-error: true
-        run: |
-          security-scan scan . \
-            --format sarif \
-            --output findings.sarif \
-            --config "$CONFIG_PATH"
+    - name: Run security scan
+      continue-on-error: true
+      run: |
+        security-scan scan . \
+          --format sarif \
+          --output findings.sarif \
+          --config "$CONFIG_PATH"
 
-          echo "Scan completed. SARIF exists?"
-          ls -lah findings.sarif || echo "SARIF NOT FOUND"
+        echo "Scan completed. SARIF exists?"
+        ls -lah findings.sarif || echo "SARIF NOT FOUND"
 
-      - name: Upload SARIF to GitHub Code Scanning
-        if: always()
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: findings.sarif
+    - name: Upload SARIF to GitHub Code Scanning
+      if: always()
+      uses: github/codeql-action/upload-sarif@v4
+      with:
+        sarif_file: findings.sarif
 
-      - name: Upload findings as artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-findings
-          path: findings.sarif
+    - name: Upload findings as artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-findings
+        path: findings.sarif
