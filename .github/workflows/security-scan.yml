@@ -28,10 +28,7 @@ jobs:
           pip install --upgrade pip setuptools wheel
           pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
           echo "Installed orchestrator version:"
-          python << 'EOF'
-from proactive_security_orchestrator import __version__
-print("proactive-security-orchestrator v" + __version__)
-EOF
+          python -c "from proactive_security_orchestrator import __version__; print(f'proactive-security-orchestrator v{__version__}')"
 
       - name: Install Semgrep + Gitleaks
         run: |
