@@ -25,7 +25,7 @@ jobs:
         pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
 
         echo "Installed orchestrator version:"
-        python <<'EOF'
+        python << 'EOF'
 from proactive_security_orchestrator import __version__
 print("proactive-security-orchestrator v" + __version__)
 EOF
