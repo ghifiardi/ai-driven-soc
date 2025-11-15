@@ -5,10 +5,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-permissions:
-  contents: read
-  security-events: write
-
 jobs:
   security-scan:
     runs-on: ubuntu-latest
@@ -24,16 +20,12 @@ jobs:
           python-version: "3.11"
 
       - name: Install orchestrator (latest from GitHub)
-
         run: |
+          pip install --upgrade pip setuptools wheel
+          pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
 
-        pip install --upgrade pip setuptools wheel
-
-        pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
-
-        echo "Installed orchestrator version:"
-
-        python << 'EOF'
+          echo "Installed orchestrator version:"
+          python << 'EOF'
 from proactive_security_orchestrator import __version__
 print("proactive-security-orchestrator v" + __version__)
 EOF
@@ -59,12 +51,13 @@ EOF
             --format sarif \
             --output findings.sarif \
             --config "$CONFIG_PATH"
+
           echo "Scan completed. SARIF exists?"
           ls -lah findings.sarif || echo "SARIF NOT FOUND"
 
       - name: Upload SARIF to GitHub Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: findings.sarif
 
