@@ -9,6 +9,7 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     steps:
       - name: Checkout target repository
         uses: actions/checkout@v4
@@ -19,16 +20,12 @@ jobs:
           python-version: "3.11"
 
       - name: Install orchestrator (latest from GitHub)
-
         run: |
+          pip install --upgrade pip setuptools wheel
+          pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
 
-        pip install --upgrade pip setuptools wheel
-
-        pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
-
-        echo "Installed orchestrator version:"
-
-        python << 'EOF'
+          echo "Installed orchestrator version:"
+          python << 'EOF'
 from proactive_security_orchestrator import __version__
 print("proactive-security-orchestrator v" + __version__)
 EOF
@@ -54,6 +51,7 @@ EOF
             --format sarif \
             --output findings.sarif \
             --config "$CONFIG_PATH"
+
           echo "Scan completed. SARIF exists?"
           ls -lah findings.sarif || echo "SARIF NOT FOUND"
 
@@ -69,4 +67,3 @@ EOF
         with:
           name: security-findings
           path: findings.sarif
-
