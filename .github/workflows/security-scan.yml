@@ -46,7 +46,7 @@ jobs:
       - name: Run security scan
         continue-on-error: true
         run: |
-          security-scan . \
+          security-scan scan . \
             --format sarif \
             --output findings.sarif \
             --config "$CONFIG_PATH"
