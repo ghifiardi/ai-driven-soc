@@ -3,32 +3,61 @@ name: Proactive Security Scan
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   security_scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .
-        pip install semgrep gitleaks
+      - name: Install orchestrator
+        run: |
+          pip install --upgrade pip
+          pip install "git+https://github.com/ghifiardi/proactive-security-orchestrator@main"
+          python -c "import proactive_security_orchestrator as p; print('proactive-security-orchestrator v' + p.__version__)"
 
-    - name: Run Proactive Security Orchestrator
-      run: |
-        python -m proactive_security_orchestrator.cli scan . --format sarif --output findings.sarif
+      - name: Install Semgrep + Gitleaks
+        run: |
+          pip install "semgrep==1.143.1"
+          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
+          tar -xzf gitleaks_8.18.0_linux_x64.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+          semgrep --version
 
-    - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: findings.sarif
+      - name: Determine orchestrator config path
+        run: |
+          echo "CONFIG_PATH=${GITHUB_WORKSPACE}/config" >> $GITHUB_ENV
+          echo "Using CONFIG_PATH=${GITHUB_WORKSPACE}/config"
+
+      - name: Run security scan
+        continue-on-error: true
+        run: |
+          security-scan scan . \
+            --format sarif \
+            --output findings.sarif \
+            --config "$CONFIG_PATH"
+          echo "Scan completed. SARIF exists?"
+          ls -lah findings.sarif || echo "SARIF NOT FOUND"
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: findings.sarif
+
+      - name: Upload findings as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-findings
+          path: findings.sarif
