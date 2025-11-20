@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   security-events: write
+  pull-requests: write
 
 jobs:
   security_scan:
@@ -64,6 +65,17 @@ jobs:
             --no-fail-on-critical
           echo "PDF report generated:"
           ls -lah security-report.pdf || echo "PDF NOT FOUND"
+
+      - name: Remediate findings
+        continue-on-error: true
+        run: |
+          echo "Attempting to remediate security findings..."
+          security-scan remediate . \
+            --findings findings.sarif \
+            --config "$CONFIG_PATH" \
+            --create-pr || echo "Remediation command not available or no auto-fixable findings"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload SARIF to GitHub Code Scanning
         if: always()
