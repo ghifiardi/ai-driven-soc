@@ -69,11 +69,17 @@ jobs:
       - name: Remediate findings
         continue-on-error: true
         run: |
-          echo "Attempting to remediate security findings..."
-          security-scan remediate . \
-            --findings findings.sarif \
-            --config "$CONFIG_PATH" \
-            --create-pr || echo "Remediation command not available or no auto-fixable findings"
+          echo "Checking for remediation functionality..."
+          if security-scan --help 2>&1 | grep -q "remediate"; then
+            echo "Remediation command found. Attempting to remediate security findings..."
+            security-scan remediate . \
+              --findings findings.sarif \
+              --config "$CONFIG_PATH" \
+              --create-pr || echo "No auto-fixable findings or remediation failed"
+          else
+            echo "Remediation command not available in current version. Skipping remediation step."
+            echo "To enable remediation, update the orchestrator to a version that includes remediation functionality."
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
