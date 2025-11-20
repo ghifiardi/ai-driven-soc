@@ -53,6 +53,17 @@ jobs:
             --no-fail-on-critical
           echo "Scan completed. SARIF exists?"
           ls -lah findings.sarif || echo "SARIF NOT FOUND"
+      
+      - name: Generate PDF report
+        continue-on-error: true
+        run: |
+          security-scan scan . \
+            --format pdf \
+            --output security-report.pdf \
+            --config "$CONFIG_PATH" \
+            --no-fail-on-critical
+          echo "PDF report generated:"
+          ls -lah security-report.pdf || echo "PDF NOT FOUND"
 
       - name: Upload SARIF to GitHub Code Scanning
         if: always()
@@ -65,4 +76,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: security-findings
-          path: findings.sarif
+          path: |
+            findings.sarif
+            security-report.pdf
