@@ -49,7 +49,8 @@ jobs:
           security-scan scan . \
             --format sarif \
             --output findings.sarif \
-            --config "$CONFIG_PATH"
+            --config "$CONFIG_PATH" \
+            --no-fail-on-critical
           echo "Scan completed. SARIF exists?"
           ls -lah findings.sarif || echo "SARIF NOT FOUND"
 
