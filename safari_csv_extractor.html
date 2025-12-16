@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safari CSV Extractor for Feedback Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f7;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1d1d1f;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .step {
+            background: #f6f6f6;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007aff;
+        }
+        .step h3 {
+            color: #007aff;
+            margin-top: 0;
+        }
+        .code-block {
+            background: #1d1d1f;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .button {
+            background: #007aff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: background-color 0.2s;
+        }
+        .button:hover {
+            background: #0056cc;
+        }
+        .button.secondary {
+            background: #8e8e93;
+        }
+        .button.secondary:hover {
+            background: #6d6d70;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #d1edff;
+            color: #0066cc;
+            border: 1px solid #007aff;
+        }
+        .status.info {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        #output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            min-height: 100px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="emoji">🦁</span>Safari CSV Extractor</h1>
+        
+        <div class="status success">
+            <span class="emoji">✅</span>
+            <strong>Dashboard Status:</strong> Accessible at http://10.45.254.19:99/feedback (Response: 200)
+        </div>
+
+        <div class="step">
+            <h3><span class="emoji">📋</span>Step 1: Open the Feedback Dashboard</h3>
+            <p>Click the button below to open the feedback dashboard in a new tab:</p>
+            <button class="button" onclick="openDashboard()">
+                <span class="emoji">🌐</span>Open Feedback Dashboard
+            </button>
+            <p><em>Wait for the page to fully load and make sure you can see the feedback data table.</em></p>
+        </div>
+
+        <div class="step">
+            <h3><span class="emoji">🔧</span>Step 2: Copy the JavaScript Code</h3>
+            <p>Click to copy the extraction code to your clipboard:</p>
+            <button class="button" onclick="copyExtractionCode()">
+                <span class="emoji">📋</span>Copy JavaScript Code
+            </button>
+            <div class="code-block" id="jsCode">
+(function(){
+    console.log("🦁 Safari CSV Extraction Started...");
+    const table = document.querySelector("table");
+    if (!table) {
+        console.log("❌ No table found");
+        // Try alternative selectors
+        const alternatives = document.querySelectorAll("[data-testid='stTable'], .stTable, .dataframe");
+        if (alternatives.length > 0) {
+            console.log("📦 Found alternative data structure");
+            return;
+        }
+        alert("No table found! Make sure the page is fully loaded.");
+        return;
+    }
+    console.log("✅ Table found! Extracting...");
+    const rows = Array.from(table.querySelectorAll("tr")).map(tr => 
+        Array.from(tr.querySelectorAll("th,td")).map(td => 
+            '"' + td.innerText.replace(/"/g,'""').trim() + '"'
+        ).join(",")
+    );
+    const blob = new Blob([rows.join("\n")], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download='feedback_table.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    console.log("✅ Saved feedback_table.csv");
+    alert("CSV file downloaded! Check your Downloads folder.");
+})();
+            </div>
+        </div>
+
+        <div class="step">
+            <h3><span class="emoji">🔍</span>Step 3: Open Safari Developer Tools</h3>
+            <p>In the feedback dashboard tab:</p>
+            <ol>
+                <li>Go to <strong>Safari</strong> menu → <strong>Preferences</strong> → <strong>Advanced</strong></li>
+                <li>Check <span class="highlight">"Show Develop menu in menu bar"</span></li>
+                <li>Go to <strong>Develop</strong> menu → <strong>Show Web Inspector</strong> (or press <code>⌘⌥I</code>)</li>
+                <li>Click on the <strong>Console</strong> tab</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="emoji">▶️</span>Step 4: Execute the Code</h3>
+            <ol>
+                <li>Click in the console input area (bottom of the inspector)</li>
+                <li>Paste the JavaScript code (⌘V)</li>
+                <li>Press <strong>Enter</strong> to execute</li>
+                <li>The CSV file will automatically download!</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3><span class="emoji">🎯</span>Alternative: One-Click Test</h3>
+            <p>If you want to test the extraction right here (this will only work if you're viewing this page from the same server):</p>
+            <button class="button secondary" onclick="testExtraction()">
+                <span class="emoji">🧪</span>Test Extraction (Advanced)
+            </button>
+        </div>
+
+        <div class="status info">
+            <span class="emoji">💡</span>
+            <strong>Tip:</strong> If the simple code doesn't work, there's an enhanced version in the project files that handles more complex Streamlit structures.
+        </div>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        function openDashboard() {
+            window.open('http://10.45.254.19:99/feedback', '_blank');
+            document.getElementById('output').textContent = '🌐 Opened feedback dashboard in new tab. Wait for it to load completely.';
+        }
+
+        function copyExtractionCode() {
+            const code = document.getElementById('jsCode').textContent;
+            navigator.clipboard.writeText(code).then(function() {
+                document.getElementById('output').textContent = '✅ JavaScript code copied to clipboard! Now paste it in the Safari console.';
+            }, function(err) {
+                document.getElementById('output').textContent = '❌ Could not copy code. Please select and copy manually.';
+            });
+        }
+
+        function testExtraction() {
+            document.getElementById('output').textContent = '🧪 Testing connection to feedback dashboard...';
+            
+            fetch('http://10.45.254.19:99/feedback')
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('output').textContent = 
+                            '✅ Dashboard is accessible!\n' +
+                            'Status: ' + response.status + '\n' +
+                            'Now use the manual method:\n' +
+                            '1. Open the dashboard link\n' +
+                            '2. Copy the JavaScript code\n' +
+                            '3. Paste in Safari console\n' +
+                            '4. Press Enter to download CSV';
+                    } else {
+                        document.getElementById('output').textContent = 
+                            '❌ Dashboard returned status: ' + response.status + '\n' +
+                            'Please check if the dashboard is running.';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('output').textContent = 
+                        '❌ Could not connect to dashboard.\n' +
+                        'Error: ' + error.message + '\n' +
+                        'This might be due to CORS restrictions.\n' +
+                        'Use the manual method instead.';
+                });
+        }
+
+        // Show initial status
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('output').textContent = 
+                '🎯 Ready to extract CSV data from feedback dashboard!\n' +
+                'Dashboard URL: http://10.45.254.19:99/feedback\n' +
+                'Follow the steps above to extract your data.';
+        });
+    </script>
+</body>
+</html>
+
+

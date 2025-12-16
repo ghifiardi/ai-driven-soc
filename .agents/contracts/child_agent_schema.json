@@ -1,0 +1,155 @@
+{
+  "child_agent_contract": {
+    "version": "1.0.0",
+    "description": "Schema for child agent responses in AI-SOC orchestration",
+    "response_format": {
+      "agent_type": {
+        "type": "string",
+        "enum": ["Codebase Surveyor", "Test Enumerator", "Config Mapper", "Strategic Planner", "Implementation Executor"],
+        "description": "Type of child agent responding"
+      },
+      "phase": {
+        "type": "string",
+        "enum": ["research", "plan", "implement"],
+        "description": "Current phase of the workflow"
+      },
+      "target": {
+        "type": "string",
+        "description": "Specific target change/bug/feature being addressed"
+      },
+      "findings": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "file_path": {
+              "type": "string",
+              "description": "Path to the file"
+            },
+            "line_range": {
+              "type": "string",
+              "pattern": "^\\[L\\d+–L\\d+\\]$",
+              "description": "Line range in format [Lxxx–Lyyy]"
+            },
+            "role": {
+              "type": "string",
+              "description": "One-line description of the file's role"
+            },
+            "relevance": {
+              "type": "string",
+              "description": "Why this file is relevant to the target"
+            }
+          },
+          "required": ["file_path", "line_range", "role", "relevance"]
+        }
+      },
+      "evidence": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "file_path": {
+              "type": "string"
+            },
+            "line_range": {
+              "type": "string",
+              "pattern": "^\\[L\\d+–L\\d+\\]$"
+            },
+            "code_snippet": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Mini code snippet (max 200 chars)"
+            },
+            "why_relevant": {
+              "type": "string",
+              "description": "Why this snippet is relevant"
+            }
+          },
+          "required": ["file_path", "line_range", "code_snippet", "why_relevant"]
+        },
+        "maxItems": 5,
+        "description": "3-5 mini code snippets as evidence"
+      },
+      "risks": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "risk": {
+              "type": "string",
+              "description": "Description of the risk"
+            },
+            "impact": {
+              "type": "string",
+              "enum": ["High", "Medium", "Low"]
+            },
+            "probability": {
+              "type": "string",
+              "enum": ["High", "Medium", "Low"]
+            },
+            "mitigation": {
+              "type": "string",
+              "description": "How to mitigate this risk"
+            }
+          },
+          "required": ["risk", "impact", "probability", "mitigation"]
+        }
+      },
+      "next_steps": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Recommended next steps"
+      },
+      "status": {
+        "type": "string",
+        "enum": ["completed", "in_progress", "blocked", "needs_review"],
+        "description": "Current status of the task"
+      }
+    },
+    "constraints": {
+      "no_long_code": "Children must NOT paste long code, only evidence pointers",
+      "max_evidence": "Maximum 5 evidence snippets per response",
+      "line_references": "Always use path + [Lx–Ly] format for references",
+      "context_hygiene": "Keep active context ≤40% of model window"
+    },
+    "examples": {
+      "research_response": {
+        "agent_type": "Codebase Surveyor",
+        "phase": "research",
+        "target": "Implement ADA embedding pipeline",
+        "findings": [
+          {
+            "file_path": "ada_ingest.py",
+            "line_range": "[L85–L120]",
+            "role": "Log parsing and ingestion entry point",
+            "relevance": "Main entry point for ADA data ingestion that needs embedding integration"
+          }
+        ],
+        "evidence": [
+          {
+            "file_path": "ada_ingest.py",
+            "line_range": "[L95–L105]",
+            "code_snippet": "def parse_logs(log_data):\n    # Parse incoming logs\n    return parsed_data",
+            "why_relevant": "Shows current log parsing structure that needs embedding integration"
+          }
+        ],
+        "risks": [
+          {
+            "risk": "Embedding latency could impact real-time processing",
+            "impact": "High",
+            "probability": "Medium",
+            "mitigation": "Implement async processing and caching"
+          }
+        ],
+        "next_steps": [
+          "Analyze current BigQuery schema",
+          "Design embedding pipeline architecture",
+          "Identify Vertex AI integration points"
+        ],
+        "status": "completed"
+      }
+    }
+  }
+}

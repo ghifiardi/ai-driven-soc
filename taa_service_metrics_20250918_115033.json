@@ -1,0 +1,92 @@
+{
+  "taa_performance": {
+    "total_taa_records": 6384,
+    "unique_alarms": 20,
+    "processing_efficiency": {
+      "mean_processing_time": 0.004232152303353181,
+      "median_processing_time": 0.004147,
+      "min_processing_time": 0.00309,
+      "max_processing_time": 0.010957,
+      "p95_processing_time": 0.0051787499999999985,
+      "p99_processing_time": 0.005604329999999998,
+      "total_processed": 6382,
+      "processing_rate_per_second": 236.28639243622894
+    },
+    "classification_performance": {
+      "classification_distribution": {
+        "benign": 6382
+      },
+      "anomaly_distribution": {
+        "false": 6382
+      },
+      "benign_rate": 0.99968671679198,
+      "anomaly_detection_rate": 0.0
+    },
+    "enrichment_analysis": {
+      "enrichment_distribution": {
+        "present": 6382,
+        "none": 2
+      },
+      "enrichment_rate": 0.99968671679198,
+      "ada_processing_rate": 0.0
+    },
+    "temporal_patterns": {
+      "earliest_alert": "2025-07-23 10:54:28,877",
+      "latest_alert": "2025-07-23 20:18:50,117",
+      "total_timespan_covered": 6382,
+      "alerts_with_timestamps": 6382
+    }
+  },
+  "decision_patterns": {
+    "decision_flow": {
+      "unknown": 3193,
+      "alert_received": 3191
+    },
+    "confidence_by_classification": {
+      "benign": {
+        "mean_confidence": 0.19999999999999998,
+        "std_confidence": 2.7757750391390576e-17,
+        "count": 6382,
+        "min_confidence": 0.2,
+        "max_confidence": 0.2
+      }
+    },
+    "model_performance": {
+      "supervised_v1": {
+        "total_processed": 6382,
+        "avg_processing_time": 0.004232152303353181,
+        "classification_breakdown": {
+          "benign": 6382
+        }
+      }
+    }
+  },
+  "threat_intelligence": {
+    "network_analysis": {
+      "unique_source_ips": 2,
+      "unique_dest_ips": 9,
+      "protocol_distribution": {
+        "tcp": 6072,
+        "udp": 310
+      },
+      "attack_category_distribution": {
+        "Normal": 948,
+        "Exploits": 348
+      }
+    },
+    "enrichment_effectiveness": {
+      "total_enriched": 6382,
+      "enrichment_rate": 0.99968671679198,
+      "enriched_classifications": {
+        "benign": 6382
+      },
+      "enriched_anomaly_rate": 0.0
+    },
+    "ada_integration": {
+      "ada_processed_count": 0,
+      "ada_processing_rate": 0.0,
+      "ada_classifications": {},
+      "ada_confidence_avg": 0
+    }
+  }
+}

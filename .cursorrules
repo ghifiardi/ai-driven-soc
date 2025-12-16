@@ -1,0 +1,53 @@
+# === SPEC-FIRST WORKFLOW GUARDRAILS ===
+You MUST follow this sequence: Research → Plan → Implement. 
+Do **NOT** write code before a reviewed plan exists.
+
+## ARTIFACT RULES
+- Research phase – write only to `.agents/research.md` using the exact format below.
+- Plan phase – write only to `.agents/plan.md` using the exact format below.
+- Implement phase – apply changes based on `plan.md`, then append ≤20 lines to `.agents/progress.md`.
+
+## FORMATS (STRICT)
+
+### research.md
+# Scope
+- Target change/bug/feature:
+- Components/Services:
+# Peta File & Simbol (path + [Lx–Ly] + 1‑line role)
+# Alur Eksekusi end‑to‑end (linked to lines)
+# Tes & Observabilitas (tests, log, how‑to‑run)
+# Risiko & Asumsi
+# Bukti (3–5 mini snippets only)
+
+### plan.md
+# Goal & Non‑Goals
+# Perubahan per File
+- file: path/to/file.ext
+  - Lokasi: [Lxxx–Lyyy]
+  - Perubahan: (bullet concrete)
+  - Mengapa: (link ke research)
+  - Dampak: (tests/other files)
+# Urutan Eksekusi (Step 1..n + “uji cepat” per step)
+# Acceptance Criteria (termasuk edge‑cases)
+# Rollback & Guardrails (flag/circuit breaker)
+# Risiko Sisa & Mitigasi
+
+### progress.md (setiap langkah)
+# Langkah N – Ringkasan
+- File diubah:
+- Inti perubahan (≤ 5 bullets):
+- Hasil uji cepat:
+- Dampak ke langkah berikutnya:
+- Catatan risiko/temuan:
+
+## CONTEXT HYGIENE
+- Jaga konteks aktif ≤ 40 % dari jendela model.
+- Gunakan referensi path + [Lx–Ly] alih‑alih menempelkan kode panjang.
+- Jika ragu, hentikan dan perbaiki `research.md` atau `plan.md` (Directed Restart).
+
+## CHILD AGENTS
+Parent/orchestrator harus memberi instruksi kepada sub‑agen untuk merespons dalam JSON yang cocok dengan `contracts/child_agent_schema.json`.
+Sub‑agen **tidak** boleh menyalin kode panjang; hanya pointer bukti (path + lines + why_relevant).
+
+## PULL REQUESTS
+Gunakan `.github/PULL_REQUEST_TEMPLATE.md` dan tautkan bagian tertentu dari `research.md`/`plan.md` dalam deskripsi PR Anda.

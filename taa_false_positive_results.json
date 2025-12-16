@@ -1,0 +1,198 @@
+{
+  "alert_data": {
+    "alert_id": "ALERT-2024-07-13-002",
+    "timestamp": "2024-07-13T15:45:30Z",
+    "source": "EDR_Sensor_002",
+    "severity": "medium",
+    "category": "suspicious_activity",
+    "log_data": {
+      "event_type": "process_creation",
+      "process_name": "powershell.exe",
+      "process_id": 23456,
+      "parent_process": "svchost.exe",
+      "command_line": "powershell.exe -ExecutionPolicy Bypass -File C:\\Scripts\\deploy_updates.ps1 -ServerList servers.txt -UpdateType security",
+      "user": "CORP\\admin.smith",
+      "hostname": "ADMIN-WORKSTATION-01",
+      "src_ip": "192.168.1.50",
+      "dst_ip": "192.168.1.100",
+      "dst_port": 5985,
+      "domain": "internal.corp.com",
+      "file_hash": "f1e2d3c4b5a6789012345678901234567890efgh",
+      "file_path": "C:\\Scripts\\deploy_updates.ps1"
+    },
+    "indicators": [
+      "powershell_execution",
+      "bypass_execution_policy",
+      "network_connection",
+      "script_execution"
+    ],
+    "metadata": {
+      "detection_rule": "PowerShell Execution with Network Activity",
+      "rule_id": "PS-002",
+      "confidence_score": 0.65
+    },
+    "enriched_data": {
+      "src_ip_intel": {
+        "reputation_score": 95,
+        "is_malicious": false,
+        "categories": [
+          "corporate",
+          "admin"
+        ],
+        "country": "US",
+        "asn": "AS12345",
+        "last_reported": null
+      },
+      "dst_ip_intel": {
+        "reputation_score": 90,
+        "is_malicious": false,
+        "categories": [
+          "corporate"
+        ],
+        "country": "US",
+        "asn": "AS12345",
+        "last_reported": null
+      },
+      "domain_intel": {
+        "reputation_score": 95,
+        "is_malicious": false,
+        "categories": [
+          "corporate"
+        ],
+        "last_analysis_date": "2024-07-10T12:00:00Z",
+        "creation_date": "2020-03-15T10:00:00Z",
+        "registrar": "Corporate IT Department"
+      },
+      "file_intel": {
+        "reputation_score": 95,
+        "is_malicious": false,
+        "categories": [
+          "legitimate_script"
+        ],
+        "detection_ratio": "0/70",
+        "last_analysis_date": "2024-07-13T08:00:00Z"
+      },
+      "historical_context": {
+        "previous_alerts": 0,
+        "previous_incidents": 0,
+        "first_seen": "2024-01-15T09:00:00Z",
+        "last_seen": "2024-07-13T15:45:30Z",
+        "recent_activity": [
+          "Regular scheduled script execution",
+          "Normal administrative activity"
+        ]
+      },
+      "user_context": {
+        "role": "System Administrator",
+        "department": "IT Operations",
+        "privilege_level": "admin",
+        "usual_activity": "System maintenance and updates",
+        "last_login": "2024-07-13T08:30:00Z"
+      }
+    }
+  },
+  "enriched_data": {
+    "src_ip_intel": {
+      "reputation_score": 95,
+      "is_malicious": false,
+      "categories": [
+        "corporate",
+        "admin"
+      ],
+      "country": "US",
+      "asn": "AS12345",
+      "last_reported": null
+    },
+    "dst_ip_intel": {
+      "reputation_score": 90,
+      "is_malicious": false,
+      "categories": [
+        "corporate"
+      ],
+      "country": "US",
+      "asn": "AS12345",
+      "last_reported": null
+    },
+    "domain_intel": {
+      "reputation_score": 95,
+      "is_malicious": false,
+      "categories": [
+        "corporate"
+      ],
+      "last_analysis_date": "2024-07-10T12:00:00Z",
+      "creation_date": "2020-03-15T10:00:00Z",
+      "registrar": "Corporate IT Department"
+    },
+    "file_intel": {
+      "reputation_score": 95,
+      "is_malicious": false,
+      "categories": [
+        "legitimate_script"
+      ],
+      "detection_ratio": "0/70",
+      "last_analysis_date": "2024-07-13T08:00:00Z"
+    },
+    "historical_context": {
+      "previous_alerts": 0,
+      "previous_incidents": 0,
+      "first_seen": "2024-01-15T09:00:00Z",
+      "last_seen": "2024-07-13T15:45:30Z",
+      "recent_activity": [
+        "Regular scheduled script execution",
+        "Normal administrative activity"
+      ]
+    },
+    "user_context": {
+      "role": "System Administrator",
+      "department": "IT Operations",
+      "privilege_level": "admin",
+      "usual_activity": "System maintenance and updates",
+      "last_login": "2024-07-13T08:30:00Z"
+    }
+  },
+  "llm_analysis": {
+    "is_true_positive": false,
+    "severity": "low",
+    "confidence": 0.88,
+    "attack_type": "legitimate_admin",
+    "indicators": [
+      "legitimate_powershell_script",
+      "internal_network_communication",
+      "admin_user_execution",
+      "scheduled_maintenance_activity",
+      "no_malicious_indicators"
+    ],
+    "recommended_actions": [
+      "No immediate action required",
+      "Consider whitelisting this script for future executions",
+      "Monitor for any unusual variations in script execution",
+      "Verify script integrity periodically",
+      "Document this as legitimate administrative activity"
+    ],
+    "analysis_summary": "This is a false positive representing legitimate system administration activity. The PowerShell command is executing a legitimate deployment script (deploy_updates.ps1) with proper administrative parameters. The user (admin.smith) is a system administrator with appropriate privileges, and the destination is an internal corporate server. The script hash has no antivirus detections, and there's no historical suspicious activity. The execution policy bypass is common and necessary for legitimate administrative scripts. This appears to be routine system maintenance and update deployment activity."
+  },
+  "final_decision": {
+    "is_true_positive": false,
+    "severity": "low",
+    "confidence": 1.0,
+    "attack_type": "legitimate_admin",
+    "indicators": [
+      "legitimate_powershell_script",
+      "internal_network_communication",
+      "admin_user_execution",
+      "scheduled_maintenance_activity",
+      "no_malicious_indicators"
+    ],
+    "recommended_actions": [
+      "No immediate action required",
+      "Consider whitelisting this script for future executions",
+      "Monitor for any unusual variations in script execution",
+      "Verify script integrity periodically",
+      "Document this as legitimate administrative activity"
+    ],
+    "analysis_summary": "This is a false positive representing legitimate system administration activity. The PowerShell command is executing a legitimate deployment script (deploy_updates.ps1) with proper administrative parameters. The user (admin.smith) is a system administrator with appropriate privileges, and the destination is an internal corporate server. The script hash has no antivirus detections, and there's no historical suspicious activity. The execution policy bypass is common and necessary for legitimate administrative scripts. This appears to be routine system maintenance and update deployment activity.",
+    "final_confidence": 1.0,
+    "ti_confidence_boost": 0.33,
+    "timestamp": "2025-07-13T21:49:38.771730"
+  }
+}

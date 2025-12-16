@@ -1,0 +1,52 @@
+{
+  "project_id": "chronicle-dev-2be9",
+  "location": "asia-southeast2",
+  "bigquery_dataset": "soc_data",
+  "bigquery_alerts_table": "alerts",
+  "bigquery_feedback_table": "feedback",
+  "bigquery_metrics_table": "metrics",
+  "bigquery_models_table": "models",
+  "bigquery_evaluations_table": "evaluations",
+  "bigquery_training_table": "model_training",
+  "bigquery_incidents_table": "incidents",
+  "bigquery_patterns_table": "patterns",
+  "bigquery_improvements_table": "improvements",
+  "bigquery_agent_state_table": "agent_state",
+  "feedback_topic": "soc-feedback",
+  "feedback_subscription": "cla-feedback-sub",
+  "metrics_topic": "soc-metrics",
+  "metrics_subscription": "cla-metrics-sub",
+  "langgraph_feedback_topic": "langgraph-feedback",
+  "feedback_threshold": 50,
+  "retraining_interval_hours": 1,
+  "model_improvement_threshold": 0.02,
+  "metrics_collection_days": 30,
+  "pattern_analysis_days": 30,
+  "min_training_samples": 5000,
+  "optimization_trials": 150,
+  "use_vertex_ai": true,
+  "model_bucket": "gs://ai-driven-soc-models",
+  "ensemble_models": [
+    "isolation_forest",
+    "random_forest",
+    "xgboost",
+    "neural_network"
+  ],
+  "feature_engineering": {
+    "network_features": true,
+    "temporal_features": true,
+    "threat_intel_features": true,
+    "behavioral_features": true
+  },
+  "threshold_optimization": {
+    "method": "precision_recall_curve",
+    "target_metric": "f1_score",
+    "min_precision": 0.85,
+    "min_recall": 0.80
+  },
+  "model_validation": {
+    "cross_validation_folds": 5,
+    "stratified_sampling": true,
+    "time_series_split": true
+  }
+}

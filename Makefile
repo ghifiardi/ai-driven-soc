@@ -1,0 +1,57 @@
+# Makefile for AI-Driven SOC Dashboard Validation (tailored)
+
+PYTHON := python3
+STREAMLIT := streamlit
+
+LOG_DIR := logs
+mkdir_guard := @mkdir -p $(LOG_DIR)
+
+# Dashboards you actually have
+PRIMARY_APP := taa_dashboard.py
+ADA_APP     := ada_bigquery_dashboard.py
+
+.PHONY: smoke smoke-ada test secure rollback logs tail kill
+
+kill:
+	- pkill -f streamlit || true
+
+logs:
+	@ls -l $(LOG_DIR) || true
+
+tail:
+	@echo "---- tail taa_dashboard.log ----"
+	@tail -n 50 -f $(LOG_DIR)/taa_dashboard.log
+
+smoke: kill
+	$(mkdir_guard)
+	@echo "🚀 Running Smoke Test (taa_dashboard.py → :8507)..."
+	@if [ ! -f "$(PRIMARY_APP)" ]; then echo "❌ Missing $(PRIMARY_APP)."; exit 2; fi
+	$(STREAMLIT) run $(PRIMARY_APP) --server.port 8507 > $(LOG_DIR)/taa_dashboard.log 2>&1 &
+	@sleep 5
+	$(PYTHON) healthcheck.py --smoke
+
+smoke-ada: kill
+	$(mkdir_guard)
+	@echo "🚀 Running ADA Dashboard Smoke Test (ada_bigquery_dashboard.py → :8506)..."
+	@if [ ! -f "$(ADA_APP)" ]; then echo "❌ Missing $(ADA_APP)."; exit 2; fi
+	$(STREAMLIT) run $(ADA_APP) --server.port 8506 > $(LOG_DIR)/ada_dashboard.log 2>&1 &
+	@sleep 5
+	$(PYTHON) healthcheck.py --smoke
+
+test:
+	@echo "🧪 Running Functional Tests (available ones only)..."
+	- $(PYTHON) test_ada.py
+	- $(PYTHON) test_a2a_demo.py
+	- $(PYTHON) test_bigquery_integration.py
+	- $(PYTHON) test_publish_ada_alert.py
+	$(PYTHON) healthcheck.py --full
+
+secure:
+	@echo "🔐 Running Security Checks..."
+	$(PYTHON) healthcheck.py --secure
+
+rollback:
+	@echo "⏪ Switching to simple dashboard (8519) and stopping local streamlit..."
+	- pkill -f streamlit || true
+	bash deploy/access_simple_dashboard.sh
+	@echo "✅ Rollback/fallback complete."

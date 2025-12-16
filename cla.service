@@ -1,0 +1,18 @@
+[Unit]
+Description=Continuous Learning Agent for AI-Driven SOC
+After=network.target
+
+[Service]
+User=app
+Group=app
+
+WorkingDirectory=/home/app/ai-driven-soc
+
+# This assumes you have a Python virtual environment named 'venv' in your project directory.
+ExecStart=/home/app/ai-driven-soc/venv/bin/python /home/app/ai-driven-soc/continuous-learning-agent.py
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

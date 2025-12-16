@@ -1,0 +1,24 @@
+# Credentials and secrets
+Service Account BigQuery/
+*.env
+.env
+
+# Python environments and caches
+venv/
+venv_mcp/
+__pycache__/
+*.pyc
+
+# Node/NPM artifacts
+node_modules/
+
+# Logs and operational traces
+*.log
+logs/
+
+# Archives and large bundles
+*.tar.gz
+*.zip
+
+# System files
+.DS_Store

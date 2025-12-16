@@ -1,0 +1,15 @@
+[Unit]
+Description=Continuous Learning Agent for AI-Driven SOC
+After=network.target
+
+[Service]
+Type=simple
+User=raditio.ghifiardigmail.com
+Group=raditio.ghifiardigmail.com
+WorkingDirectory=/home/raditio.ghifiardigmail.com/ai-driven-soc
+ExecStart=/home/raditio.ghifiardigmail.com/ai-driven-soc/venv/bin/python /home/raditio.ghifiardigmail.com/ai-driven-soc/continuous-learning-agent.py --config /home/raditio.ghifiardigmail.com/ai-driven-soc/config/cla_config.json
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

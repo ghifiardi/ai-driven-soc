@@ -1,0 +1,29 @@
+{
+  "automation_id": "AUTO-20250827164708",
+  "client_id": "CLIENT-001",
+  "package_id": "PKG-20250827164706",
+  "status": "COMPLETED",
+  "execution_time": "4.2 minutes",
+  "platforms_searched": 10,
+  "options_analyzed": 150,
+  "final_package": {
+    "flight": {
+      "airline": "Air France",
+      "class": "Business",
+      "route": "CGK \u2192 CDG",
+      "confirmation": "FL-20250827164703"
+    },
+    "hotel": {
+      "name": "Le Bristol Paris",
+      "rating": 5,
+      "location": "8th Arrondissement",
+      "confirmation": "HTL-20250827164706"
+    }
+  },
+  "financial_summary": {
+    "base_cost": 3200.0,
+    "commission": 384.0,
+    "client_price": 3584.0,
+    "profit_margin": 10.714285714285714
+  }
+}

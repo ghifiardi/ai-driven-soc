@@ -1,0 +1,248 @@
+{
+  "timestamp": "2025-11-11 09:47:15",
+  "host": "10.45.254.19",
+  "streamlit_apps": {
+    "port_8505": {
+      "port": 8505,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8506": {
+      "port": 8506,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8508": {
+      "port": 8508,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8510": {
+      "port": 8510,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8509": {
+      "port": 8509,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8507": {
+      "port": 8507,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8501": {
+      "port": 8501,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8503": {
+      "port": 8503,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8504": {
+      "port": 8504,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "port_8502": {
+      "port": 8502,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    }
+  },
+  "common_services": {
+    "http": {
+      "port": 80,
+      "status": "open",
+      "accessible": true,
+      "error": null
+    },
+    "ssh": {
+      "port": 22,
+      "status": "open",
+      "accessible": true,
+      "error": null
+    },
+    "mysql": {
+      "port": 3306,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "jenkins": {
+      "port": 8080,
+      "status": "open",
+      "accessible": true,
+      "error": null
+    },
+    "https": {
+      "port": 443,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "grafana": {
+      "port": 3000,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "postgresql": {
+      "port": 5432,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "elasticsearch": {
+      "port": 9200,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "prometheus": {
+      "port": 9090,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "sonarqube": {
+      "port": 9000,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "nginx": {
+      "port": 8080,
+      "status": "open",
+      "accessible": true,
+      "error": null
+    },
+    "bitbucket": {
+      "port": 7990,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "kibana": {
+      "port": 5601,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "apache": {
+      "port": 8080,
+      "status": "open",
+      "accessible": true,
+      "error": null
+    },
+    "confluence": {
+      "port": 8090,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "tomcat": {
+      "port": 8080,
+      "status": "open",
+      "accessible": true,
+      "error": null
+    },
+    "redis": {
+      "port": 6379,
+      "status": "closed",
+      "accessible": false,
+      "error": "Connection refused (code: 61)"
+    },
+    "jira": {
+      "port": 8080,
+      "status": "open",
+      "accessible": true,
+      "error": null
+    }
+  },
+  "soc_dashboards": {
+    "realtime_dashboard": {
+      "url": "http://10.45.254.19:8503",
+      "status_code": null,
+      "status": "connection_error",
+      "accessible": false,
+      "response_time": null,
+      "content_length": 0,
+      "error": "Connection error"
+    },
+    "bigquery_dashboard": {
+      "url": "http://10.45.254.19:8504",
+      "status_code": null,
+      "status": "connection_error",
+      "accessible": false,
+      "response_time": null,
+      "content_length": 0,
+      "error": "Connection error"
+    },
+    "soc_dashboard": {
+      "url": "http://10.45.254.19:8501",
+      "status_code": null,
+      "status": "connection_error",
+      "accessible": false,
+      "response_time": null,
+      "content_length": 0,
+      "error": "Connection error"
+    },
+    "soc_dashboard_alt": {
+      "url": "http://10.45.254.19:8502",
+      "status_code": null,
+      "status": "connection_error",
+      "accessible": false,
+      "response_time": null,
+      "content_length": 0,
+      "error": "Connection error"
+    },
+    "minimal_dashboard": {
+      "url": "http://10.45.254.19:8505",
+      "status_code": null,
+      "status": "connection_error",
+      "accessible": false,
+      "response_time": null,
+      "content_length": 0,
+      "error": "Connection error"
+    },
+    "feedback": {
+      "url": "http://10.45.254.19:99/feedback",
+      "status_code": 200,
+      "status": "online",
+      "accessible": true,
+      "response_time": 2.292737,
+      "content_length": 1522,
+      "error": null
+    }
+  },
+  "files_analysis": {
+    "streamlit_soc_dashboard.py": "Main SOC dashboard",
+    "streamlit_soc_dashboard_minimal.py": "Minimal SOC dashboard",
+    "realtime_soc_dashboard.py": "Real-time SOC dashboard",
+    "dark_mode_fixed_dashboard.py": "Dark mode dashboard",
+    "fast_loading_dashboard.py": "Fast loading dashboard",
+    "fixed_streamlit_dashboard.py": "Fixed Streamlit dashboard",
+    "simple_working_dashboard.py": "Simple working dashboard",
+    "local_bigquery_app.py": "BigQuery integration",
+    "data_sources.py": "Data sources configuration"
+  },
+  "summary": {
+    "accessible_streamlit": 0,
+    "accessible_services": 7,
+    "accessible_dashboards": 1
+  }
+}

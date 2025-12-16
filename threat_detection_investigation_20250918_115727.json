@@ -1,0 +1,336 @@
+{
+  "classification_patterns": {
+    "original_classifications": {
+      "ification": 9573
+    },
+    "taa_classifications": {
+      "benign": 6382
+    },
+    "confidence_distribution": {
+      "count": 6382.0,
+      "mean": 0.2,
+      "std": 0.0,
+      "min": 0.2,
+      "25%": 0.2,
+      "50%": 0.2,
+      "75%": 0.2,
+      "max": 0.2
+    },
+    "anomaly_distribution": {
+      "false": 6382
+    }
+  },
+  "attack_investigation": {
+    "attack_categories": {
+      "Normal": 948,
+      "Exploits": 348
+    },
+    "potential_threats": {
+      "count": 348,
+      "categories": {
+        "Exploits": 348
+      },
+      "classifications": {
+        "benign": 348
+      }
+    },
+    "severity_distribution": {
+      "low": 948,
+      "high": 348
+    },
+    "high_severity_alerts": {
+      "count": 348,
+      "classifications": {
+        "benign": 348
+      },
+      "attack_categories": {
+        "Exploits": 348
+      }
+    }
+  },
+  "threat_analysis": {
+    "threat_keywords": {
+      "exploit": "522",
+      "attack": "7034",
+      "malicious": "4"
+    },
+    "ip_analysis": {
+      "top_source_ips": {
+        "149.171.126.7": 5086,
+        "10.45.254.19": 641
+      },
+      "ip_distribution": {
+        "private_ips": 641,
+        "public_ips": 5086
+      }
+    }
+  },
+  "model_behavior": {
+    "confidence_analysis": {
+      "unique_values": 1,
+      "most_common_confidence": 0.2,
+      "confidence_variance": 7.704927067907437e-34,
+      "all_same_confidence": true
+    },
+    "model_types": {
+      "supervised_v1": 6382
+    },
+    "processing_patterns": {
+      "mean_time": 0.004232152303353181,
+      "std_time": 0.0005572850271333633,
+      "all_similar_time": "True",
+      "min_time": 0.00309,
+      "max_time": 0.010957
+    }
+  },
+  "hidden_threats": {
+    "potential_threats": [
+      {
+        "row_id": 1,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 12,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 35,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 43,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 54,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 64,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 109,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 120,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 127,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 141,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 143,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 146,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 160,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 162,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 175,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 181,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 189,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 190,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 191,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      },
+      {
+        "row_id": 200,
+        "threat_score": 11,
+        "reasons": [
+          "Exploit category",
+          "High severity",
+          "Low confidence"
+        ],
+        "classification": "benign",
+        "attack_category": "Exploits",
+        "alert_severity": "high"
+      }
+    ],
+    "threat_score_distribution": {
+      "high_threat_score": 5434,
+      "medium_threat_score": 948,
+      "low_threat_score": 0,
+      "no_threat_indicators": 2
+    }
+  }
+}

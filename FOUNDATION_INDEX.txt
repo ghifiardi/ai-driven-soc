@@ -1,0 +1,123 @@
+================================================================================
+  FOUNDATION DASHBOARD V1.0 - FILE INDEX
+  Date: October 1, 2025
+  Status: Production-Ready ✅
+================================================================================
+
+📦 FOUNDATION PACKAGE CONTENTS:
+
+1. CORE FILES
+   ├── complete_operational_dashboard_FOUNDATION_V1_20251001.py (81 KB)
+   │   └── Stable production dashboard - ALWAYS KEEP THIS FILE
+   │
+   └── complete_operational_dashboard.py (81 KB)
+       └── Active running version (currently same as foundation)
+
+2. DOCUMENTATION FILES
+   ├── docs/FOUNDATION_DASHBOARD_V1.md (27 KB)
+   │   └── Comprehensive technical documentation (Markdown)
+   │
+   └── docs/FOUNDATION_DASHBOARD_V1.docx (24 KB)
+       └── Professional documentation (Microsoft Word)
+
+3. QUICK REFERENCE FILES
+   ├── FOUNDATION_README.md (5.6 KB)
+   │   └── Quick start guide and common commands
+   │
+   ├── FOUNDATION_SUMMARY.md (7.0 KB)
+   │   └── Creation summary and verification checklist
+   │
+   └── FOUNDATION_INDEX.txt (THIS FILE)
+       └── File listing and quick navigation
+
+4. AUTOMATION FILES
+   └── RESTORE_FOUNDATION.sh (3.2 KB)
+       └── Automated restoration script
+
+================================================================================
+QUICK ACTIONS:
+================================================================================
+
+🔄 RESTORE TO FOUNDATION:
+   ./RESTORE_FOUNDATION.sh
+
+📖 READ DOCUMENTATION:
+   open docs/FOUNDATION_DASHBOARD_V1.docx
+   # OR
+   cat docs/FOUNDATION_DASHBOARD_V1.md
+
+🚀 DEPLOY CURRENT VERSION:
+   gcloud compute scp complete_operational_dashboard.py \
+     app@xdgaisocapp01:/home/app/ai-driven-soc/ --zone=asia-southeast2-a
+   gcloud compute ssh app@xdgaisocapp01 --zone=asia-southeast2-a \
+     --tunnel-through-iap \
+     --command='cd /home/app/ai-driven-soc && ./restart_dashboard.sh'
+
+📊 ACCESS DASHBOARD:
+   http://10.45.254.19:8535
+
+================================================================================
+DOCUMENT NAVIGATION:
+================================================================================
+
+START HERE:
+   └─→ FOUNDATION_README.md (Quick overview & commands)
+
+FOR DEVELOPMENT:
+   └─→ docs/FOUNDATION_DASHBOARD_V1.md (Technical details)
+
+FOR PRESENTATIONS:
+   └─→ docs/FOUNDATION_DASHBOARD_V1.docx (Professional format)
+
+FOR VERIFICATION:
+   └─→ FOUNDATION_SUMMARY.md (Creation details & checklist)
+
+FOR RESTORATION:
+   └─→ RESTORE_FOUNDATION.sh (Automated script)
+
+================================================================================
+IMPORTANT NOTES:
+================================================================================
+
+⚠️  NEVER DELETE: complete_operational_dashboard_FOUNDATION_V1_20251001.py
+    This is your stable baseline for restoration!
+
+✅  SAFE TO MODIFY: complete_operational_dashboard.py
+    You can experiment with this file. Restore foundation if needed.
+
+💾  CREATE BACKUPS: Before major changes
+    cp complete_operational_dashboard.py \
+       complete_operational_dashboard_backup_$(date +%Y%m%d_%H%M%S).py
+
+🔧  TEST INCREMENTALLY: Small changes are safer than big rewrites
+
+📝  DOCUMENT CHANGES: Update docs when adding features
+
+================================================================================
+FOUNDATION FEATURES (All Working ✅):
+================================================================================
+
+✅ Real-time alert review from BigQuery
+✅ Automatic alert deduplication
+✅ Stable alert selection (dropdown matches details)
+✅ Feedback submission to BigQuery
+✅ Automatic alert removal after feedback
+✅ AI chat assistant (Google Gemini Flash 2.5)
+✅ Security operations funnel visualization
+✅ Analytics dashboard with model metrics
+✅ Timezone conversion (Jakarta/WIB)
+
+================================================================================
+SUPPORT:
+================================================================================
+
+Issue?           → Check FOUNDATION_README.md troubleshooting section
+Major problem?   → Run: ./RESTORE_FOUNDATION.sh
+Need details?    → Read: docs/FOUNDATION_DASHBOARD_V1.md
+Want DOCX?       → Open: docs/FOUNDATION_DASHBOARD_V1.docx
+
+================================================================================
+
+Foundation Dashboard V1.0 - Your Stable Baseline for AI-Driven SOC Operations
+
+================================================================================

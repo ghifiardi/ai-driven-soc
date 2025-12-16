@@ -1,0 +1,6 @@
+--- Starting fetch_data.sh at Sat Jul  5 10:15:44 UTC 2025 ---
+Query to execute: SELECT * FROM `chronicle-dev-2be9.gatra_database.siem_events` LIMIT 5
+Executing bq command...
+'bq' command finished with exit code: 0
+SUCCESS: Data successfully fetched to /home/raditio.ghifiardigmail.com/ai-driven-soc/results.json
+--- Script finished successfully. ---

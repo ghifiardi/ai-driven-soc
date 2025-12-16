@@ -1,0 +1,57 @@
+{
+  "defaults": {
+    "project_id": "chronicle-dev-2be9",
+    "location": "us-central1",
+    "dataset_template": "gatra_{tenant_id}",
+    "results_dataset_template": "gatra_{tenant_id}_results",
+    "metrics_namespace": "gatra_multi_tenant"
+  },
+  "tenants": [
+    {
+      "tenant_id": "tenant_001",
+      "display_name": "Pilot Bank - Professional Tier",
+      "region": "us-central1",
+      "dataset": "gatra_tenant_001",
+      "results_dataset": "gatra_tenant_001_results",
+      "tables": {
+        "events": "events",
+        "alerts": "alerts",
+        "results": "events_results"
+      },
+      "pubsub_topics": {
+        "ingest": "events-tenant_001",
+        "alerts": "alerts-tenant_001",
+        "priority": "priority-tenant_001"
+      },
+      "rate_limits": {
+        "ingest_eps": 10000,
+        "alerts_per_min": 500
+      },
+      "service_level": "professional"
+    },
+    {
+      "tenant_id": "tenant_002",
+      "display_name": "Telco Digital - Professional Tier",
+      "region": "asia-southeast1",
+      "dataset": "gatra_tenant_002",
+      "results_dataset": "gatra_tenant_002_results",
+      "tables": {
+        "events": "events",
+        "alerts": "alerts",
+        "results": "events_results"
+      },
+      "pubsub_topics": {
+        "ingest": "events-tenant_002",
+        "alerts": "alerts-tenant_002",
+        "priority": "priority-tenant_002"
+      },
+      "rate_limits": {
+        "ingest_eps": 10000,
+        "alerts_per_min": 500
+      },
+      "service_level": "professional"
+    }
+  ],
+  "default_tenant_id": "tenant_001"
+}
+

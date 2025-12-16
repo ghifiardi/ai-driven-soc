@@ -1,0 +1,9 @@
+{
+  "project_id": "chronicle-dev-2be9",
+  "location": "asia-southeast2",
+  "alert_subscription": "ada-alerts",
+  "incident_topic": "",
+  "feedback_topic": "taa-feedback",
+  "reporting_topic": "",
+  "llm_api_url": "http://10.45.254.19:8000/orchestrator/run?include_trajectory=false&save_to_db=false"
+}

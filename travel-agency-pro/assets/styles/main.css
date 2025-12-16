@@ -1,0 +1,369 @@
+/* ===== BASE STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Color Palette */
+    --primary-color: #2563eb;
+    --primary-dark: #1d4ed8;
+    --secondary-color: #64748b;
+    --accent-color: #f59e0b;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    
+    /* Neutral Colors */
+    --white: #ffffff;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e1;
+    --gray-400: #94a3b8;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-700: #334155;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+    
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    
+    /* Spacing */
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-5: 1.25rem;
+    --spacing-6: 1.5rem;
+    --spacing-8: 2rem;
+    --spacing-10: 2.5rem;
+    --spacing-12: 3rem;
+    
+    /* Border Radius */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Transitions */
+    --transition-fast: 150ms ease-in-out;
+    --transition-normal: 250ms ease-in-out;
+    --transition-slow: 350ms ease-in-out;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--gray-800);
+    background-color: var(--gray-50);
+    overflow-x: hidden;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--gray-900);
+    margin-bottom: var(--spacing-4);
+}
+
+h1 { font-size: var(--font-size-3xl); }
+h2 { font-size: var(--font-size-2xl); }
+h3 { font-size: var(--font-size-xl); }
+h4 { font-size: var(--font-size-lg); }
+h5 { font-size: var(--font-size-base); }
+h6 { font-size: var(--font-size-sm); }
+
+p {
+    margin-bottom: var(--spacing-4);
+    color: var(--gray-600);
+}
+
+/* ===== LAYOUT ===== */
+.main-dashboard {
+    display: grid;
+    grid-template-columns: 350px 1fr 300px;
+    gap: var(--spacing-6);
+    padding: var(--spacing-6);
+    max-width: 1920px;
+    margin: 0 auto;
+    min-height: calc(100vh - 80px);
+}
+
+/* ===== HEADER ===== */
+.header-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: var(--spacing-4) 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+}
+
+.header-content {
+    max-width: 1920px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-content .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.header-content .language-switcher,
+.header-content .ai-automation-status {
+    display: flex;
+    align-items: center;
+}
+
+.header-content .logo i {
+    font-size: var(--font-size-2xl);
+}
+
+
+
+.language-switcher {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    color: var(--gray-600);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.lang-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.lang-btn.active {
+    background: var(--primary-color);
+    color: var(--white);
+    border-color: var(--primary-color);
+}
+
+/* ===== PANELS ===== */
+.client-panel,
+.booking-workspace,
+.automation-panel {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: var(--spacing-6);
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+.panel-header h2 {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-3);
+    color: var(--gray-800);
+}
+
+/* ===== CLIENT PANEL ===== */
+.client-panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.add-client-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    background: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.add-client-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.client-list {
+    padding: var(--spacing-4);
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+/* ===== BOOKING WORKSPACE ===== */
+.workspace-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-6);
+}
+
+.workspace-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: var(--spacing-2) var(--spacing-3);
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+}
+
+.status-indicator i {
+    color: var(--success-color);
+}
+
+.status-indicator.processing i {
+    color: var(--warning-color);
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.completed i {
+    color: var(--success-color);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ===== AUTOMATION PANEL ===== */
+.automation-panel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.queue-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--gray-600);
+}
+
+.queue-count {
+    background: var(--primary-color);
+    color: var(--white);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1400px) {
+    .main-dashboard {
+        grid-template-columns: 300px 1fr 280px;
+        gap: var(--spacing-4);
+        padding: var(--spacing-4);
+    }
+}
+
+@media (max-width: 1200px) {
+    .main-dashboard {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-4);
+    }
+    
+    .client-panel,
+    .automation-panel {
+        order: 2;
+    }
+    
+    .booking-workspace {
+        order: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        padding: 0 var(--spacing-4);
+    }
+    
+    .main-dashboard {
+        padding: var(--spacing-4);
+        gap: var(--spacing-4);
+    }
+    
+    .panel-header {
+        padding: var(--spacing-4);
+    }
+    
+    .logo {
+        font-size: var(--font-size-lg);
+    }
+    
+    .logo i {
+        font-size: var(--font-size-xl);
+    }
+}
+
+@media (max-width: 480px) {
+    .header-content {
+        flex-direction: column;
+        gap: var(--spacing-3);
+    }
+    
+    .language-switcher {
+        align-self: flex-end;
+    }
+    
+    .main-dashboard {
+        padding: var(--spacing-3);
+        gap: var(--spacing-3);
+    }
+}

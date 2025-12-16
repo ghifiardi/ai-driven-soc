@@ -1,0 +1,21 @@
+{
+  "project_id": "chronicle-dev-2be9",
+  "bigquery_dataset": "soc_data",
+  "processed_alerts_table": "processed_alerts",
+  "feedback_table": "feedback",
+  "model_bucket": "cla-production-models",
+  "model_path": "models/",
+  "pubsub_topic": "cla-classifications",
+  "retrain_interval_hours": 24,
+  "min_retrain_samples": 1000,
+  "performance_threshold": 0.95,
+  "service_port": 8080,
+  "health_check_interval": 300,
+  "log_level": "INFO",
+  "enable_pubsub": true,
+  "enable_gcs_backup": true,
+  "max_predictions_per_minute": 1000,
+  "model_cache_size": 5
+}
+
+

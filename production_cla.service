@@ -1,0 +1,31 @@
+[Unit]
+Description=Production CLA Service - 100% Performance AI Model
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=raditio.ghifiardigmail.com
+Group=raditio.ghifiardigmail.com
+WorkingDirectory=/home/raditio.ghifiardigmail.com/ai-driven-soc
+ExecStart=/usr/bin/python3.11 /home/raditio.ghifiardigmail.com/ai-driven-soc/production_cla_service.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables
+Environment=PYTHONPATH=/home/raditio.ghifiardigmail.com/ai-driven-soc
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/raditio.ghifiardigmail.com/ai-driven-soc
+
+[Install]
+WantedBy=multi-user.target

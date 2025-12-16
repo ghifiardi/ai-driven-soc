@@ -1,0 +1,46 @@
+# Core dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+aiohttp>=3.9.0
+asyncio
+
+# MCP dependencies
+mcp>=1.0.0
+
+# Google Cloud dependencies
+google-cloud-aiplatform>=1.71.0
+google-cloud-pubsub>=2.18.0
+google-cloud-storage>=2.10.0
+vertexai>=1.71.0
+
+# Google ADK (Agent Development Kit) - Note: may not be available yet
+# google-adk>=1.0.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# HTTP and networking
+requests>=2.31.0
+httpx>=0.25.0
+
+# JSON and data handling
+pydantic>=2.4.0
+dataclasses-json>=0.6.0
+
+# Logging and monitoring
+structlog>=23.1.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.11.0
+
+# Development tools
+black>=23.7.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+# Security
+cryptography>=41.0.0

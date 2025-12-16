@@ -1,0 +1,344 @@
+{
+  "timestamp": "2025-09-18T11:22:31.828710",
+  "api_results": {
+    "/api/feedback": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/api/feedback/all": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/api/data": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/api/alerts": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/api/export": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/feedback/api": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/feedback/data": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/feedback/export": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/data/feedback": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/export/feedback": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/feedback.json": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/feedback.csv": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/api/v1/feedback": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/api/v2/feedback": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/rest/feedback": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    },
+    "/graphql": {
+      "status": "success",
+      "status_code": 200,
+      "content_type": "text/html",
+      "content_length": 1522,
+      "data_preview": "<!--\n Copyright (c) Streamlit Inc. (2018-2022) Snowflake Inc. (2022-2025)\n\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the Lic"
+    }
+  },
+  "database_options": {
+    "bigquery": {
+      "description": "Google BigQuery integration",
+      "files_to_check": [
+        "bigquery_client.py",
+        "bigquery_integration.py",
+        "bigquery_integration_rt.py",
+        "Service Account BigQuery/sa-gatra-bigquery.json"
+      ],
+      "available": true
+    },
+    "firestore": {
+      "description": "Google Firestore database",
+      "files_to_check": [
+        "config/cra_soar_mcp_config.json"
+      ],
+      "available": true
+    },
+    "local_files": {
+      "description": "Local data files",
+      "files_to_check": [
+        "*.log",
+        "*.json",
+        "*.csv"
+      ],
+      "available": false
+    }
+  },
+  "data_files": {
+    "json_files": [
+      {
+        "path": "taa_false_positive_results.json",
+        "size": 6979,
+        "modified": "2025-07-13 21:49:38.772113"
+      },
+      {
+        "path": "taa_case_study_results.json",
+        "size": 7311,
+        "modified": "2025-07-13 21:45:46.876095"
+      },
+      {
+        "path": "package-lock.json",
+        "size": 55499,
+        "modified": "2025-09-13 21:03:30.679610"
+      },
+      {
+        "path": "package.json",
+        "size": 88,
+        "modified": "2025-09-13 20:53:57.818672"
+      },
+      {
+        "path": "soc_services_status.json",
+        "size": 6260,
+        "modified": "2025-09-18 09:54:03.587745"
+      },
+      {
+        "path": "config/taa_a2a_config.json",
+        "size": 4217,
+        "modified": "2025-09-13 21:03:44.149721"
+      },
+      {
+        "path": "config/cra_soar_mcp_config.json",
+        "size": 11857,
+        "modified": "2025-09-13 21:35:15.274589"
+      },
+      {
+        "path": "config/taa_config.json",
+        "size": 301,
+        "modified": "2025-07-24 16:12:07.438019"
+      },
+      {
+        "path": "config/taa_a2a_config.json",
+        "size": 4217,
+        "modified": "2025-09-13 21:03:44.149721"
+      },
+      {
+        "path": "config/cra_soar_mcp_config.json",
+        "size": 11857,
+        "modified": "2025-09-13 21:35:15.274589"
+      },
+      {
+        "path": "config/taa_config.json",
+        "size": 301,
+        "modified": "2025-07-24 16:12:07.438019"
+      },
+      {
+        "path": "Service Account BigQuery/sa-gatra-bigquery.json",
+        "size": 2393,
+        "modified": "2025-08-26 15:34:27.928151"
+      },
+      {
+        "path": "travel-agency-pro/automation_results.json",
+        "size": 713,
+        "modified": "2025-08-27 16:47:08.969223"
+      }
+    ],
+    "csv_files": [],
+    "log_files": [
+      {
+        "path": "ada_workflow.log",
+        "size": 0,
+        "modified": "2025-09-09 17:12:47.138444"
+      },
+      {
+        "path": "taa_service.log",
+        "size": 13970434,
+        "modified": "2025-07-23 20:19:16.482123"
+      },
+      {
+        "path": "manual_review_queue.log",
+        "size": 7230359,
+        "modified": "2025-07-23 20:18:50.117693"
+      },
+      {
+        "path": "fetch_data.log",
+        "size": 351,
+        "modified": "2025-07-10 11:09:53.023691"
+      },
+      {
+        "path": "ada_alert_publisher.log",
+        "size": 514233,
+        "modified": "2025-07-25 08:27:21.632856"
+      },
+      {
+        "path": "logs/primary_dashboard.log",
+        "size": 38,
+        "modified": "2025-09-09 16:58:07.127917"
+      },
+      {
+        "path": "logs/primary_dashboard.log",
+        "size": 38,
+        "modified": "2025-09-09 16:58:07.127917"
+      }
+    ],
+    "config_files": [
+      {
+        "path": "docker-compose.yml",
+        "size": 2274,
+        "modified": "2025-07-15 05:28:41.706619"
+      }
+    ]
+  },
+  "log_files": [
+    "ada_workflow.log",
+    "taa_service.log",
+    "manual_review_queue.log",
+    "fetch_data.log",
+    "ada_alert_publisher.log",
+    "logs/primary_dashboard.log",
+    "ada_workflow.log",
+    "ada_alert_publisher.log",
+    "taa_service.log"
+  ],
+  "methods": [
+    {
+      "name": "BigQuery Direct Access",
+      "description": "Access the underlying BigQuery database directly",
+      "steps": [
+        "Use the service account key in 'Service Account BigQuery/'",
+        "Connect to BigQuery using bigquery_client.py",
+        "Query the alerts/feedback tables directly",
+        "Export larger datasets"
+      ],
+      "files_needed": [
+        "Service Account BigQuery/sa-gatra-bigquery.json",
+        "bigquery_client.py"
+      ],
+      "complexity": "Medium"
+    },
+    {
+      "name": "Log File Mining",
+      "description": "Extract data from log files",
+      "steps": [
+        "Parse ada_alert_publisher.log for alert data",
+        "Extract feedback from taa_service.log",
+        "Parse manual_review_queue.log for reviews",
+        "Combine data from multiple log sources"
+      ],
+      "files_needed": [
+        "*.log files"
+      ],
+      "complexity": "Low"
+    },
+    {
+      "name": "API Endpoint Discovery",
+      "description": "Find hidden API endpoints with more data",
+      "steps": [
+        "Test various API endpoints",
+        "Check for GraphQL endpoints",
+        "Try different authentication methods",
+        "Look for export/download endpoints"
+      ],
+      "files_needed": [
+        "Network access to server"
+      ],
+      "complexity": "Medium"
+    },
+    {
+      "name": "Database Direct Connection",
+      "description": "Connect directly to the database",
+      "steps": [
+        "Identify the database type (Firestore, MySQL, etc.)",
+        "Use database credentials from config files",
+        "Query the feedback/alerts tables directly",
+        "Export comprehensive datasets"
+      ],
+      "files_needed": [
+        "Database credentials",
+        "config files"
+      ],
+      "complexity": "High"
+    },
+    {
+      "name": "Scheduled Data Collection",
+      "description": "Collect data over time using automation",
+      "steps": [
+        "Set up automated dashboard scraping",
+        "Run extraction script every hour/day",
+        "Accumulate data over time",
+        "Deduplicate and merge datasets"
+      ],
+      "files_needed": [
+        "Cron job or scheduler"
+      ],
+      "complexity": "Medium"
+    }
+  ]
+}

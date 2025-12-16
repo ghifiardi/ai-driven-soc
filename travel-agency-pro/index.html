@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Agency Pro - AI-Powered Booking Automation</title>
+    <link rel="stylesheet" href="assets/styles/main.css">
+    <link rel="stylesheet" href="assets/styles/components.css">
+    <link rel="stylesheet" href="assets/styles/responsive.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header with language switcher -->
+    <header class="header-bar">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-plane-departure"></i>
+                <span data-lang="title">Travel Agency Pro</span>
+            </div>
+            <div class="language-switcher">
+                <button class="lang-btn active" data-lang="en" onclick="switchLanguage('en')">
+                    <i class="fas fa-flag-usa"></i> EN
+                </button>
+                <button class="lang-btn" data-lang="id" onclick="switchLanguage('id')">
+                    <i class="fas fa-flag"></i> ID
+                </button>
+            </div>
+            
+            <!-- AI Automation Status -->
+            <div class="ai-automation-status">
+                <div id="automationStatus" class="status-indicator ready">
+                    <i class="fas fa-robot"></i>
+                    AI Automation Ready
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main dashboard with 3-column layout -->
+    <main class="main-dashboard">
+        <!-- Client Panel (Left) -->
+        <section class="client-panel">
+            <div class="panel-header">
+                <h2 data-lang="clientQueue">👥 Client Queue</h2>
+                <button class="add-client-btn" onclick="addNewClient()">
+                    <i class="fas fa-plus"></i>
+                    <span data-lang="addClient">Add Client</span>
+                </button>
+            </div>
+            
+            <div class="client-list">
+                <!-- Client items will be populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Booking Workspace (Center) -->
+        <section class="booking-workspace">
+            <div class="workspace-header">
+                <h2 data-lang="bookingWorkspace">✈️ Booking Workspace</h2>
+                <div class="workspace-status">
+                    <span class="status-indicator" id="workspaceStatus">
+                        <i class="fas fa-circle"></i>
+                        <span data-lang="ready">Ready</span>
+                    </span>
+                </div>
+            </div>
+
+            <form id="agencyBookingForm" class="booking-form">
+                <!-- Trip Details Section -->
+                <div class="form-section">
+                    <h3 data-lang="tripDetails">Trip Details</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="totalBudget" data-lang="totalBudget">Total Budget</label>
+                            <div class="budget-input">
+                                <span class="currency-symbol" id="currencySymbol">$</span>
+                                <input type="number" id="totalBudget" name="totalBudget" placeholder="0" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="commissionRate" data-lang="commissionRate">Commission Rate (%)</label>
+                            <input type="number" id="commissionRate" name="commissionRate" min="8" max="15" value="12" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="originCity" data-lang="originCity">Origin City</label>
+                            <input type="text" id="originCity" name="originCity" placeholder="Jakarta" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="destinationCity" data-lang="destinationCity">Destination City</label>
+                            <input type="text" id="destinationCity" name="destinationCity" placeholder="Paris" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="departureDate" data-lang="departureDate">Departure Date</label>
+                            <input type="date" id="departureDate" name="departureDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="returnDate" data-lang="returnDate">Return Date</label>
+                            <input type="date" id="returnDate" name="returnDate">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flight Preferences Section -->
+                <div class="form-section">
+                    <h3 data-lang="flightPreferences">Flight Preferences</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="flightClass" data-lang="flightClass">Flight Class</label>
+                            <select id="flightClass" name="flightClass" required>
+                                <option value="economy" data-lang="economy">Economy</option>
+                                <option value="premium-economy" data-lang="premiumEconomy">Premium Economy</option>
+                                <option value="business" data-lang="business">Business</option>
+                                <option value="first" data-lang="first">First Class</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="preferredAirline" data-lang="preferredAirline">Preferred Airline</label>
+                            <input type="text" id="preferredAirline" name="preferredAirline" placeholder="Any">
+                        </div>
+                        <div class="form-group">
+                            <label for="maxFlightPrice" data-lang="maxFlightPrice">Max Flight Price</label>
+                            <div class="price-input">
+                                <span class="currency-symbol" id="flightCurrencySymbol">$</span>
+                                <input type="number" id="maxFlightPrice" name="maxFlightPrice" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="preferDirect" data-lang="preferDirect">Prefer Direct Flights</label>
+                            <div class="checkbox-wrapper">
+                                <input type="checkbox" id="preferDirect" name="preferDirect" checked>
+                                <label for="preferDirect" class="checkbox-label"></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hotel Preferences Section -->
+                <div class="form-section">
+                    <h3 data-lang="hotelPreferences">Hotel Preferences</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="preferredArea" data-lang="preferredArea">Preferred Area</label>
+                            <input type="text" id="preferredArea" name="preferredArea" placeholder="City Center">
+                        </div>
+                        <div class="form-group">
+                            <label for="minRating" data-lang="minRating">Minimum Rating</label>
+                            <select id="minRating" name="minRating">
+                                <option value="3" data-lang="threeStars">3 Stars</option>
+                                <option value="4" data-lang="fourStars">4 Stars</option>
+                                <option value="5" data-lang="fiveStars">5 Stars</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="maxHotelPrice" data-lang="maxHotelPrice">Max Hotel Price/Night</label>
+                            <div class="price-input">
+                                <span class="currency-symbol" id="hotelCurrencySymbol">$</span>
+                                <input type="number" id="maxHotelPrice" name="maxHotelPrice" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="roomType" data-lang="roomType">Room Type</label>
+                            <select id="roomType" name="roomType">
+                                <option value="standard" data-lang="standard">Standard</option>
+                                <option value="deluxe" data-lang="deluxe">Deluxe</option>
+                                <option value="suite" data-lang="suite">Suite</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special Requests Section -->
+                <div class="form-section">
+                    <h3 data-lang="specialRequests">Special Requests</h3>
+                    <div class="form-group">
+                        <label for="specialRequests" data-lang="specialRequestsDesc">Additional Requirements</label>
+                        <textarea id="specialRequests" name="specialRequests" rows="3" placeholder="Any special requirements or preferences..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="startAutomationBtn">
+                        <i class="fas fa-rocket"></i>
+                        <span data-lang="startAutomation">Start Automated Search</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                        <i class="fas fa-undo"></i>
+                        <span data-lang="resetForm">Reset Form</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Results Section (Hidden by default) -->
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="results-header">
+                    <h3 data-lang="searchResults">Search Results</h3>
+                    <button class="btn btn-secondary" onclick="hideResults()">
+                        <i class="fas fa-times"></i>
+                        <span data-lang="closeResults">Close</span>
+                    </button>
+                </div>
+                <div id="resultsContent" class="results-content">
+                    <!-- Results will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Automation Panel (Right) -->
+        <section class="automation-panel">
+            <div class="panel-header">
+                <h2 data-lang="automationQueue">🤖 Automation Queue</h2>
+                <div class="queue-status">
+                    <span data-lang="queueStatus">Queue:</span>
+                    <span class="queue-count" id="queueCount">0</span>
+                </div>
+            </div>
+
+            <div class="automation-console">
+                <div class="console-header">
+                    <h4 data-lang="automationConsole">Automation Console</h4>
+                    <div class="console-controls">
+                        <button class="btn btn-sm btn-secondary" onclick="clearConsole()">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="console-output" id="consoleOutput">
+                    <div class="console-message info">
+                        <i class="fas fa-info-circle"></i>
+                        <span data-lang="consoleReady">Console ready. Select a client and start automation.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="automation-progress">
+                <div class="progress-header">
+                    <h4 data-lang="currentProgress">Current Progress</h4>
+                </div>
+                <div class="progress-steps" id="progressSteps">
+                    <!-- Progress steps will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add Client Modal -->
+    <div id="addClientModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-lang="addNewClient">Add New Client</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addClientForm" class="modal-form">
+                <div class="form-group">
+                    <label for="clientName" data-lang="clientName">Client Name</label>
+                    <input type="text" id="clientName" name="clientName" required>
+                </div>
+                <div class="form-group">
+                    <label for="clientBudget" data-lang="clientBudget">Budget</label>
+                    <input type="number" id="clientBudget" name="clientBudget" required>
+                </div>
+                <div class="form-group">
+                    <label for="clientPriority" data-lang="clientPriority">Priority</label>
+                    <select id="clientPriority" name="clientPriority" required>
+                        <option value="urgent" data-lang="urgent">Urgent</option>
+                        <option value="medium" data-lang="medium">Medium</option>
+                        <option value="standard" data-lang="standard">Standard</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tripType" data-lang="tripType">Trip Type</label>
+                    <input type="text" id="tripType" name="tripType" placeholder="e.g., Honeymoon, Business, Family">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <span data-lang="addClient">Add Client</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">
+                        <span data-lang="cancel">Cancel</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3 data-lang="processing">Processing...</h3>
+            <p data-lang="pleaseWait">Please wait while we search for the best travel options.</p>
+        </div>
+    </div>
+
+    <script src="assets/scripts/translations.js"></script>
+    <script src="assets/scripts/main.js"></script>
+    <script src="assets/scripts/automation.js"></script>
+    <script src="assets/scripts/ui.js"></script>
+    <script src="assets/scripts/automation_integration.js"></script>
+    <script src="assets/scripts/real_automation.js"></script>
+</body>
+</html>

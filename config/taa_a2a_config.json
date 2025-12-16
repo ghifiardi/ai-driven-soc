@@ -1,0 +1,156 @@
+{
+  "project_id": "ai-driven-soc",
+  "location": "us-central1",
+  "a2a": {
+    "enabled": true,
+    "port": 8080,
+    "discovery_interval": 300,
+    "max_agents": 100,
+    "timeout": 30,
+    "retry_attempts": 3
+  },
+  "vertex_ai": {
+    "model": "gemini-2.0-flash-exp",
+    "staging_bucket": "gs://ai-driven-soc-staging",
+    "endpoint": "https://us-central1-aiplatform.googleapis.com",
+    "max_tokens": 4096,
+    "temperature": 0.1
+  },
+  "pubsub": {
+    "alerts_topic": "ada-alerts",
+    "feedback_topic": "taa-feedback",
+    "a2a_topic": "a2a-communication",
+    "threat_intelligence_topic": "threat-intelligence",
+    "containment_topic": "containment-requests"
+  },
+  "agentspace": {
+    "enabled": true,
+    "registration_url": "https://agentspace.googleapis.com/v1/agents",
+    "discovery_url": "https://agentspace.googleapis.com/v1/agents/discover",
+    "update_interval": 600,
+    "max_registration_retries": 5
+  },
+  "security": {
+    "authentication": {
+      "type": "oauth2",
+      "scopes": [
+        "https://www.googleapis.com/auth/cloud-platform",
+        "https://www.googleapis.com/auth/aiplatform"
+      ],
+      "token_refresh_interval": 3600
+    },
+    "encryption": {
+      "enabled": true,
+      "algorithm": "AES-256-GCM"
+    },
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 100,
+      "burst_limit": 20
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file": "logs/taa_a2a.log",
+    "max_size": "10MB",
+    "backup_count": 5
+  },
+  "monitoring": {
+    "enabled": true,
+    "metrics_endpoint": "/metrics",
+    "health_check_interval": 30,
+    "alert_thresholds": {
+      "response_time_ms": 5000,
+      "error_rate_percent": 5,
+      "queue_size": 100
+    }
+  },
+  "capabilities": {
+    "analyze_security_alert": {
+      "enabled": true,
+      "max_concurrent_requests": 10,
+      "timeout_seconds": 30,
+      "enrichment_sources": [
+        "threat_intelligence",
+        "historical_data",
+        "network_context"
+      ]
+    },
+    "share_threat_intelligence": {
+      "enabled": true,
+      "max_indicators_per_request": 100,
+      "confidence_threshold": 0.7,
+      "supported_formats": ["json", "stix", "csv"]
+    },
+    "request_containment": {
+      "enabled": true,
+      "supported_actions": ["isolate", "block", "monitor", "quarantine"],
+      "priority_levels": ["low", "medium", "high", "critical"],
+      "approval_required": false
+    },
+    "collaborative_analysis": {
+      "enabled": true,
+      "max_collaborating_agents": 5,
+      "collaboration_modes": ["parallel", "sequential", "hierarchical"],
+      "consensus_threshold": 0.8
+    }
+  },
+  "integration": {
+    "ada_agent": {
+      "enabled": true,
+      "endpoint": "http://localhost:8081",
+      "subscription": "ada-alerts-subscription"
+    },
+    "cla_agent": {
+      "enabled": true,
+      "endpoint": "http://localhost:8082",
+      "subscription": "cla-requests-subscription"
+    },
+    "external_agents": {
+      "discovery_enabled": true,
+      "trusted_domains": [
+        "agentspace.googleapis.com",
+        "vertex-ai.googleapis.com"
+      ]
+    }
+  },
+  "mcp": {
+    "enabled": true,
+    "servers": {
+      "filesystem": {
+        "name": "filesystem",
+        "command": "npx",
+        "args": ["./node_modules/@modelcontextprotocol/server-filesystem/dist/index.js", "/tmp/mcp-data"],
+        "env": {}
+      },
+      "threat_intelligence": {
+        "name": "threat-intelligence",
+        "command": "python3",
+        "args": ["threat_intelligence_mcp_server.py"],
+        "env": {
+          "VT_API_KEY": "",
+          "AIPDB_API_KEY": "",
+          "SHODAN_API_KEY": ""
+        }
+      },
+      "simulated_chronicle": {
+        "name": "simulated-chronicle",
+        "command": "python3",
+        "args": ["simulated_chronicle_server.py"],
+        "env": {
+          "GOOGLE_CLOUD_PROJECT": "ai-driven-soc",
+          "GOOGLE_APPLICATION_CREDENTIALS": "./Service Account BigQuery/sa-gatra-bigquery.json"
+        }
+      }
+    },
+    "timeout": 30,
+    "retry_attempts": 3
+  },
+  "chronicle": {
+    "customer_id": "",
+    "region": "us-central1",
+    "max_results": 1000,
+    "timeout": 60
+  }
+} 

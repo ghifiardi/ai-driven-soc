@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # TAA A2A FastAPI server
+  taa_a2a_server:
+    image: python:3.11
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: bash -c "pip install -r requirements_a2a.txt && python3 taa_a2a_server.py"
+    ports:
+      - "8080:8080"
+    environment:
+      - LOCAL_LLM_PATH=/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - local_llm
+    networks:
+      - socnet
+
+  # Local LLM server (llama-cpp-python)
+  local_llm:
+    image: ghcr.io/abetlen/llama-cpp-python:latest
+    command: python3 -m llama_cpp.server --model /models/mistral-7b-instruct-v0.2.Q4_K_M.gguf --host 0.0.0.0 --port 8000
+    volumes:
+      - ./models:/models
+    ports:
+      - "8000:8000"
+    networks:
+      - socnet
+
+  # Enrichment orchestrator (LangChain)
+  enrichment:
+    image: ghcr.io/abetlen/llama-cpp-python:latest
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ./models:/models
+    command: bash -c "pip install langchain openai langchain_community && python3 taa_langchain_enrichment.py"
+    environment:
+      - LOCAL_LLM_PATH=/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      - local_llm
+    networks:
+      - socnet
+
+  # Pub/Sub enrichment worker
+  pubsub_enrichment_worker:
+    image: ghcr.io/abetlen/llama-cpp-python:latest
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - ./models:/models
+    command: bash -c "pip install langchain openai langchain_community google-cloud-pubsub && python3 pubsub_enrichment_worker.py"
+    environment:
+      - LOCAL_LLM_PATH=/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID}
+      - ALERT_SUBSCRIPTION=${ALERT_SUBSCRIPTION}
+      - ENRICHED_TOPIC=${ENRICHED_TOPIC}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/gcp-creds.json  # Mount your GCP creds as needed
+    depends_on:
+      - local_llm
+    networks:
+      - socnet
+
+networks:
+  socnet:
+    driver: bridge
+
+# Place your Mistral model file in ./models/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+# Set OPENAI_API_KEY, GCP_PROJECT_ID, ALERT_SUBSCRIPTION, ENRICHED_TOPIC, and GOOGLE_APPLICATION_CREDENTIALS in your environment before running: docker-compose up 

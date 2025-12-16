@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Driven SOC Operations Platform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-bottom: 2px solid #00d4ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5em;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: calc(100vh - 100px);
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        .panel h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .alert-item, .incident-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+        }
+
+        .alert-item:hover, .incident-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .severity-critical { border-left-color: #ff4444; }
+        .severity-high { border-left-color: #ff8800; }
+        .severity-medium { border-left-color: #ffaa00; }
+        .severity-low { border-left-color: #00aa00; }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .alert-id {
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .alert-severity {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .severity-critical { background: #ff4444; color: white; }
+        .severity-high { background: #ff8800; color: white; }
+        .severity-medium { background: #ffaa00; color: black; }
+        .severity-low { background: #00aa00; color: white; }
+
+        .ai-reasoning {
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            border-left: 3px solid #00d4ff;
+        }
+
+        .ai-reasoning::before {
+            content: "🤖 AI Analysis: ";
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .recommended-action {
+            background: rgba(0, 170, 0, 0.1);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            border-left: 3px solid #00aa00;
+        }
+
+        .recommended-action::before {
+            content: "💡 Recommended: ";
+            font-weight: bold;
+            color: #00aa00;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #00aa00, #008800);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a2332 0%, #0f1419 100%);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #00d4ff;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #00d4ff;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 212, 255, 0.3);
+            border-top: 4px solid #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>AI-Driven SOC Operations Platform</h1>
+        <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span id="connection-status">Connected to GLM-4.6</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Left Panel: Alerts & AI Analysis -->
+        <div class="panel">
+            <h2>🚨 Security Alerts (GLM-4.6 Analysis)</h2>
+            
+            <div class="controls">
+                <button class="btn" onclick="openAlertModal()">Create Test Alert</button>
+                <button class="btn btn-danger" onclick="createCriticalAlert()">Critical Alert</button>
+                <button class="btn btn-success" onclick="refreshAlerts()">Refresh</button>
+            </div>
+
+            <div id="alerts-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading alerts...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Incidents & Metrics -->
+        <div class="panel">
+            <h2>📊 SOC Metrics & Incidents</h2>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-value" id="total-alerts">0</div>
+                    <div class="metric-label">Total Alerts</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="active-incidents">0</div>
+                    <div class="metric-label">Active Incidents</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="mttr">0</div>
+                    <div class="metric-label">MTTR (min)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="compliance-score">0%</div>
+                    <div class="metric-label">Compliance</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="openIncidentModal()">Create Incident</button>
+                <button class="btn" onclick="checkCompliance()">Compliance Check</button>
+            </div>
+
+            <div id="incidents-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading incidents...</p>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="metricsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Creation Modal -->
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAlertModal()">&times;</span>
+            <h2>Create Security Alert</h2>
+            <form id="alertForm">
+                <div class="form-group">
+                    <label for="alertSource">Source:</label>
+                    <select id="alertSource" required>
+                        <option value="Firewall">Firewall</option>
+                        <option value="Endpoint">Endpoint Detection</option>
+                        <option value="SIEM">SIEM</option>
+                        <option value="IDS">Intrusion Detection</option>
+                        <option value="Email">Email Security</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="alertSeverity">Severity:</label>
+                    <select id="alertSeverity" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="alertDescription">Description:</label>
+                    <textarea id="alertDescription" rows="3" required placeholder="Describe the security event..."></textarea>
+                </div>
+                <button type="submit" class="btn">Submit Alert</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Incident Creation Modal -->
+    <div id="incidentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeIncidentModal()">&times;</span>
+            <h2>Create Security Incident</h2>
+            <form id="incidentForm">
+                <div class="form-group">
+                    <label for="incidentSeverity">Severity:</label>
+                    <select id="incidentSeverity" required>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="incidentType">Attack Type:</label>
+                    <select id="incidentType" required>
+                        <option value="Malware">Malware</option>
+                        <option value="Phishing">Phishing</option>
+                        <option value="DDoS">DDoS</option>
+                        <option value="Data Breach">Data Breach</option>
+                        <option value="Insider Threat">Insider Threat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="affectedSystems">Affected Systems:</label>
+                    <input type="text" id="affectedSystems" required placeholder="e.g., Web Server, Database, Email Server">
+                </div>
+                <button type="submit" class="btn">Create Incident</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO connection
+        const socket = io();
+        
+        // Initialize Chart.js
+        let metricsChart;
+        
+        // Connection status
+        socket.on('connect', function() {
+            document.getElementById('connection-status').textContent = 'Connected to GLM-4.6';
+            loadDashboardData();
+        });
+        
+        socket.on('disconnect', function() {
+            document.getElementById('connection-status').textContent = 'Disconnected';
+        });
+        
+        // Real-time updates
+        socket.on('new_alert', function(data) {
+            console.log('New alert received:', data);
+            loadAlerts();
+        });
+        
+        socket.on('new_incident', function(data) {
+            console.log('New incident received:', data);
+            loadIncidents();
+        });
+        
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+                
+                // Update metrics
+                document.getElementById('total-alerts').textContent = data.metrics?.total_alerts || 0;
+                document.getElementById('active-incidents').textContent = data.metrics?.active_incidents || 0;
+                document.getElementById('mttr').textContent = data.metrics?.mttr || 0;
+                document.getElementById('compliance-score').textContent = (data.metrics?.compliance_score || 0) + '%';
+                
+                // Load alerts and incidents
+                loadAlerts();
+                loadIncidents();
+                
+                // Initialize chart
+                initializeChart();
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+        
+        // Load alerts
+        async function loadAlerts() {
+            try {
+                const response = await fetch('/api/alerts');
+                const alerts = await response.json();
+                
+                const container = document.getElementById('alerts-container');
+                container.innerHTML = '';
+                
+                if (alerts.length === 0) {
+                    container.innerHTML = '<div class="loading"><p>No alerts found</p></div>';
+                    return;
+                }
+                
+                alerts.forEach(alert => {
+                    const alertElement = document.createElement('div');
+                    alertElement.className = `alert-item severity-${alert.severity.toLowerCase()}`;
+                    alertElement.innerHTML = `
+                        <div class="alert-header">
+                            <span class="alert-id">${alert.id}</span>
+                            <span class="alert-severity severity-${alert.severity.toLowerCase()}">${alert.severity}</span>
+                        </div>
+                        <div><strong>Source:</strong> ${alert.source}</div>
+                        <div><strong>Description:</strong> ${alert.description}</div>
+                        <div><strong>Confidence:</strong> ${(alert.confidence * 100).toFixed(1)}%</div>
+                        <div class="ai-reasoning">${alert.ai_reasoning}</div>
+                        <div class="recommended-action">${alert.recommended_action}</div>
+                    `;
+                    container.appendChild(alertElement);
+                });
+                
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+            }
+        }
+        
+        // Load incidents
+        async function loadIncidents() {
+            try {
+                const response = await fetch('/api/incidents');
+                const incidents = await response.json();
+                
+                const container = document.getElementById('incidents-container');
+                container.innerHTML = '';
+                
+                if (incidents.length === 0) {
+                    container.innerHTML = '<div class="loading"><p>No incidents found</p></div>';
+                    return;
+                }
+                
+                incidents.forEach(incident => {
+                    const incidentElement = document.createElement('div');
+                    incidentElement.className = `incident-item severity-${incident.severity.toLowerCase()}`;
+                    incidentElement.innerHTML = `
+                        <div class="alert-header">
+                            <span class="alert-id">${incident.id}</span>
+                            <span class="alert-severity severity-${incident.severity.toLowerCase()}">${incident.severity}</span>
+                        </div>
+                        <div><strong>Status:</strong> ${incident.status}</div>
+                        <div><strong>Progress:</strong> ${incident.progress}%</div>
+                    `;
+                    container.appendChild(incidentElement);
+                });
+                
+            } catch (error) {
+                console.error('Error loading incidents:', error);
+            }
+        }
+        
+        // Initialize metrics chart
+        function initializeChart() {
+            const ctx = document.getElementById('metricsChart').getContext('2d');
+            metricsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        label: 'Alerts',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Incidents',
+                        data: [2, 3, 1, 4, 2, 1],
+                        borderColor: '#ff4444',
+                        backgroundColor: 'rgba(255, 68, 68, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#ffffff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#ffffff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Modal functions
+        function openAlertModal() {
+            document.getElementById('alertModal').style.display = 'block';
+        }
+        
+        function closeAlertModal() {
+            document.getElementById('alertModal').style.display = 'none';
+        }
+        
+        function openIncidentModal() {
+            document.getElementById('incidentModal').style.display = 'block';
+        }
+        
+        function closeIncidentModal() {
+            document.getElementById('incidentModal').style.display = 'none';
+        }
+        
+        // Form submissions
+        document.getElementById('alertForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const alertData = {
+                source: document.getElementById('alertSource').value,
+                severity: document.getElementById('alertSeverity').value,
+                description: document.getElementById('alertDescription').value
+            };
+            
+            try {
+                const response = await fetch('/api/alerts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(alertData)
+                });
+                
+                if (response.ok) {
+                    closeAlertModal();
+                    loadAlerts();
+                }
+            } catch (error) {
+                console.error('Error creating alert:', error);
+            }
+        });
+        
+        document.getElementById('incidentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const incidentData = {
+                severity: document.getElementById('incidentSeverity').value,
+                attack_type: document.getElementById('incidentType').value,
+                affected_systems: document.getElementById('affectedSystems').value
+            };
+            
+            try {
+                const response = await fetch('/api/incidents', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(incidentData)
+                });
+                
+                if (response.ok) {
+                    closeIncidentModal();
+                    loadIncidents();
+                }
+            } catch (error) {
+                console.error('Error creating incident:', error);
+            }
+        });
+        
+        // Quick actions
+        function createCriticalAlert() {
+            const alertData = {
+                source: 'IDS',
+                severity: 'Critical',
+                description: 'Multiple failed login attempts detected from suspicious IP addresses. Potential brute force attack in progress.'
+            };
+            
+            fetch('/api/alerts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(alertData)
+            }).then(() => {
+                loadAlerts();
+            });
+        }
+        
+        function refreshAlerts() {
+            loadAlerts();
+        }
+        
+        function checkCompliance() {
+            const eventData = {
+                event: 'Data access attempt',
+                data_type: 'Personal Information',
+                user: 'admin@company.com',
+                system: 'Customer Database'
+            };
+            
+            fetch('/api/compliance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(eventData)
+            }).then(response => response.json())
+            .then(data => {
+                alert(`Compliance Check Result:\nStatus: ${data.compliance_status}\nRisk Level: ${data.risk_level}\nRecommendations: ${data.recommendations?.join(', ')}`);
+            });
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboardData, 30000);
+    </script>
+</body>
+</html>

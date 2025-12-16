@@ -1,0 +1,393 @@
+{
+  "project_id": "ai-driven-soc",
+  "location": "us-central1",
+  
+  "mcp": {
+    "enabled": true,
+    "env": {
+      "VT_API_KEY": "",
+      "AIPDB_API_KEY": "",
+      "SHODAN_API_KEY": ""
+    }
+  },
+  
+  "vertex_ai": {
+    "model": "gemini-2.0-flash-exp",
+    "max_tokens": 4096,
+    "temperature": 0.1
+  },
+  
+  "pubsub": {
+    "incidents_topic": "confirmed-incidents",
+    "reports_topic": "incident-reports",
+    "a2a_topic": "a2a-communication"
+  },
+  
+  "playbooks": {
+    "malware_containment": {
+      "name": "Malware Containment",
+      "description": "Contain malware infections and prevent spread",
+      "trigger_conditions": {
+        "severity": ["high", "critical"],
+        "threat_types": ["malware", "ransomware", "trojan"],
+        "min_risk_score": 70,
+        "asset_types": ["endpoint", "server"]
+      },
+      "actions": [
+        {
+          "action_id": "isolate_infected_hosts",
+          "action_type": "isolate",
+          "target": "${affected_hosts}",
+          "parameters": {
+            "isolation_method": "network_quarantine",
+            "duration": "until_manual_release"
+          },
+          "risk_level": "high",
+          "justification": "Isolate infected hosts to prevent malware spread",
+          "requires_approval": true
+        },
+        {
+          "action_id": "block_malicious_ips",
+          "action_type": "block",
+          "target": "${malicious_ips}",
+          "parameters": {
+            "block_type": "firewall_rule",
+            "direction": "both"
+          },
+          "risk_level": "medium",
+          "justification": "Block known malicious IP addresses",
+          "requires_approval": false
+        },
+        {
+          "action_id": "quarantine_suspicious_files",
+          "action_type": "quarantine",
+          "target": "${suspicious_files}",
+          "parameters": {
+            "quarantine_location": "/quarantine/",
+            "scan_for_malware": true
+          },
+          "risk_level": "medium",
+          "justification": "Quarantine suspicious files for analysis",
+          "requires_approval": false
+        },
+        {
+          "action_id": "escalate_to_security_team",
+          "action_type": "escalate",
+          "target": "security_team",
+          "parameters": {
+            "escalation_level": "tier2",
+            "urgency": "high"
+          },
+          "risk_level": "high",
+          "justification": "Escalate to security team for manual investigation",
+          "requires_approval": false
+        }
+      ],
+      "approval_workflow": {
+        "enabled": true,
+        "approvers": ["security_lead", "incident_commander"],
+        "timeout_minutes": 30,
+        "escalation": {
+          "enabled": true,
+          "escalate_after_minutes": 15,
+          "escalate_to": ["security_manager", "ciso"]
+        }
+      },
+      "timeout_minutes": 60,
+      "retry_count": 3,
+      "enabled": true
+    },
+    
+    "phishing_response": {
+      "name": "Phishing Response",
+      "description": "Respond to phishing incidents and prevent data loss",
+      "trigger_conditions": {
+        "severity": ["medium", "high"],
+        "threat_types": ["phishing", "social_engineering"],
+        "min_risk_score": 60
+      },
+      "actions": [
+        {
+          "action_id": "block_phishing_urls",
+          "action_type": "block",
+          "target": "${phishing_urls}",
+          "parameters": {
+            "block_type": "dns_filter",
+            "scope": "organization_wide"
+          },
+          "risk_level": "medium",
+          "justification": "Block phishing URLs to prevent further access",
+          "requires_approval": false
+        },
+        {
+          "action_id": "monitor_affected_accounts",
+          "action_type": "monitor",
+          "target": "${affected_accounts}",
+          "parameters": {
+            "monitoring_level": "enhanced",
+            "duration": "72h",
+            "alerts": ["login_anomalies", "data_access"]
+          },
+          "risk_level": "medium",
+          "justification": "Monitor accounts that may have been compromised",
+          "requires_approval": false
+        },
+        {
+          "action_id": "escalate_phishing_incident",
+          "action_type": "escalate",
+          "target": "security_team",
+          "parameters": {
+            "escalation_level": "tier1",
+            "urgency": "medium"
+          },
+          "risk_level": "medium",
+          "justification": "Escalate for user notification and training",
+          "requires_approval": false
+        }
+      ],
+      "approval_workflow": {
+        "enabled": false
+      },
+      "timeout_minutes": 30,
+      "retry_count": 2,
+      "enabled": true
+    },
+    
+    "ddos_mitigation": {
+      "name": "DDoS Mitigation",
+      "description": "Mitigate DDoS attacks and protect infrastructure",
+      "trigger_conditions": {
+        "severity": ["high", "critical"],
+        "threat_types": ["ddos", "network_attack"],
+        "min_risk_score": 80
+      },
+      "actions": [
+        {
+          "action_id": "enable_ddos_protection",
+          "action_type": "block",
+          "target": "${attack_ips}",
+          "parameters": {
+            "block_type": "ddos_mitigation",
+            "rate_limit": "1000_requests_per_minute"
+          },
+          "risk_level": "high",
+          "justification": "Enable DDoS protection to mitigate attack",
+          "requires_approval": false
+        },
+        {
+          "action_id": "escalate_ddos_incident",
+          "action_type": "escalate",
+          "target": "network_team",
+          "parameters": {
+            "escalation_level": "tier1",
+            "urgency": "critical"
+          },
+          "risk_level": "critical",
+          "justification": "Immediate escalation for DDoS response",
+          "requires_approval": false
+        }
+      ],
+      "approval_workflow": {
+        "enabled": false
+      },
+      "timeout_minutes": 15,
+      "retry_count": 1,
+      "enabled": true
+    },
+    
+    "insider_threat": {
+      "name": "Insider Threat Response",
+      "description": "Respond to insider threat indicators",
+      "trigger_conditions": {
+        "severity": ["high", "critical"],
+        "threat_types": ["insider_threat", "data_exfiltration"],
+        "min_risk_score": 75
+      },
+      "actions": [
+        {
+          "action_id": "disable_user_account",
+          "action_type": "disable",
+          "target": "${suspicious_user}",
+          "parameters": {
+            "disable_type": "account_lock",
+            "preserve_evidence": true
+          },
+          "risk_level": "high",
+          "justification": "Disable account to prevent further unauthorized access",
+          "requires_approval": true
+        },
+        {
+          "action_id": "monitor_user_activity",
+          "action_type": "monitor",
+          "target": "${suspicious_user}",
+          "parameters": {
+            "monitoring_level": "forensic",
+            "duration": "30d",
+            "capture_evidence": true
+          },
+          "risk_level": "medium",
+          "justification": "Monitor user activity for forensic analysis",
+          "requires_approval": false
+        },
+        {
+          "action_id": "escalate_insider_threat",
+          "action_type": "escalate",
+          "target": "legal_team",
+          "parameters": {
+            "escalation_level": "executive",
+            "urgency": "high",
+            "legal_review": true
+          },
+          "risk_level": "critical",
+          "justification": "Escalate to legal team for investigation",
+          "requires_approval": false
+        }
+      ],
+      "approval_workflow": {
+        "enabled": true,
+        "approvers": ["security_lead", "hr_director", "legal_counsel"],
+        "timeout_minutes": 60,
+        "escalation": {
+          "enabled": true,
+          "escalate_after_minutes": 30,
+          "escalate_to": ["ciso", "ceo"]
+        }
+      },
+      "timeout_minutes": 120,
+      "retry_count": 2,
+      "enabled": true
+    },
+    
+    "vulnerability_response": {
+      "name": "Critical Vulnerability Response",
+      "description": "Respond to critical vulnerabilities and security patches",
+      "trigger_conditions": {
+        "severity": ["high", "critical"],
+        "threat_types": ["vulnerability", "exploit"],
+        "min_risk_score": 85
+      },
+      "actions": [
+        {
+          "action_id": "apply_emergency_patch",
+          "action_type": "patch",
+          "target": "${vulnerable_systems}",
+          "parameters": {
+            "patch_type": "emergency",
+            "rollback_plan": true,
+            "testing_required": false
+          },
+          "risk_level": "high",
+          "justification": "Apply emergency patch to mitigate critical vulnerability",
+          "requires_approval": true
+        },
+        {
+          "action_id": "isolate_unpatched_systems",
+          "action_type": "isolate",
+          "target": "${unpatched_systems}",
+          "parameters": {
+            "isolation_method": "network_segmentation",
+            "duration": "until_patched"
+          },
+          "risk_level": "medium",
+          "justification": "Isolate systems that cannot be immediately patched",
+          "requires_approval": false
+        },
+        {
+          "action_id": "monitor_exploit_activity",
+          "action_type": "monitor",
+          "target": "${vulnerable_systems}",
+          "parameters": {
+            "monitoring_level": "critical",
+            "duration": "168h",
+            "alerts": ["exploit_attempts", "unauthorized_access"]
+          },
+          "risk_level": "medium",
+          "justification": "Monitor for exploit attempts on vulnerable systems",
+          "requires_approval": false
+        }
+      ],
+      "approval_workflow": {
+        "enabled": true,
+        "approvers": ["security_lead", "system_administrator"],
+        "timeout_minutes": 45,
+        "escalation": {
+          "enabled": true,
+          "escalate_after_minutes": 20,
+          "escalate_to": ["infrastructure_manager"]
+        }
+      },
+      "timeout_minutes": 90,
+      "retry_count": 3,
+      "enabled": true
+    }
+  },
+  
+  "security_tools": {
+    "firewall": {
+      "enabled": true,
+      "api_endpoint": "https://firewall.example.com/api",
+      "api_key": "${FIREWALL_API_KEY}",
+      "timeout": 30
+    },
+    "endpoint_security": {
+      "enabled": true,
+      "api_endpoint": "https://endpoint.example.com/api",
+      "api_key": "${ENDPOINT_API_KEY}",
+      "timeout": 30
+    },
+    "network_monitoring": {
+      "enabled": true,
+      "api_endpoint": "https://network.example.com/api",
+      "api_key": "${NETWORK_API_KEY}",
+      "timeout": 30
+    },
+    "ticketing_system": {
+      "enabled": true,
+      "type": "jira",
+      "api_endpoint": "https://company.atlassian.net",
+      "api_key": "${JIRA_API_KEY}",
+      "username": "${JIRA_USERNAME}",
+      "project_key": "SEC"
+    }
+  },
+  
+  "notification": {
+    "email": {
+      "enabled": true,
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "username": "${EMAIL_USERNAME}",
+      "password": "${EMAIL_PASSWORD}",
+      "recipients": ["security-team@company.com", "incident-commander@company.com"]
+    },
+    "slack": {
+      "enabled": true,
+      "webhook_url": "${SLACK_WEBHOOK_URL}",
+      "channels": ["#security-alerts", "#incident-response"]
+    },
+    "teams": {
+      "enabled": false,
+      "webhook_url": "${TEAMS_WEBHOOK_URL}"
+    }
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "format": "json",
+    "file": "logs/cra_soar_mcp.log",
+    "max_size": "10MB",
+    "backup_count": 5
+  },
+  
+  "monitoring": {
+    "enabled": true,
+    "metrics_endpoint": "/metrics",
+    "health_check_interval": 30,
+    "alert_thresholds": {
+      "response_time_ms": 5000,
+      "error_rate_percent": 5,
+      "queue_size": 100,
+      "playbook_failure_rate": 10
+    }
+  }
+}

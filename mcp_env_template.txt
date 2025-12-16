@@ -1,0 +1,27 @@
+# Open-Source Threat Intelligence MCP Server Configuration
+# =======================================================
+
+# VirusTotal API Key (Free tier available)
+# Sign up at: https://www.virustotal.com/gui/join-us
+VT_API_KEY=
+
+# AbuseIPDB API Key (Free tier available)
+# Sign up at: https://www.abuseipdb.com/register
+AIPDB_API_KEY=
+
+# Shodan API Key (Free tier available)
+# Sign up at: https://account.shodan.io/register
+SHODAN_API_KEY=
+
+# Google Cloud Configuration
+GOOGLE_CLOUD_PROJECT=ai-driven-soc
+GOOGLE_APPLICATION_CREDENTIALS=./Service Account BigQuery/sa-gatra-bigquery.json
+
+# MCP Configuration
+MCP_ENABLED=true
+
+# Server Configuration
+HOST=0.0.0.0
+PORT=8080
+
+

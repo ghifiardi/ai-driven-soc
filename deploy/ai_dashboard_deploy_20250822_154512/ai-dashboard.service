@@ -1,0 +1,16 @@
+[Unit]
+Description=AI Model Training Dashboard
+After=network.target
+
+[Service]
+User=app
+Group=app
+WorkingDirectory=/home/app/ai-model-training-dashboard
+ExecStart=/home/app/ai-model-training-dashboard/start_dashboard.sh
+Restart=always
+RestartSec=10
+Environment=DASHBOARD_PORT=8503
+Environment=DASHBOARD_HOST=0.0.0.0
+
+[Install]
+WantedBy=multi-user.target

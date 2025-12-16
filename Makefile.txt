@@ -1,0 +1,40 @@
+# Makefile for AI-Driven SOC Dashboard Validation
+
+PYTHON := python3
+STREAMLIT := streamlit
+
+# Default env vars
+PROJECT_ID ?= chronicle-dev-2be9
+DATASET_ID ?= gatra_database
+SA_FILE ?= sa-gatra-bigquery-clean.json
+
+# Logs directory
+LOG_DIR := logs
+mkdir_guard := @mkdir -p $(LOG_DIR)
+
+.PHONY: smoke test secure rollback
+
+smoke:
+	$(mkdir_guard)
+	@echo "🚀 Running Smoke Test..."
+	-pkill -f streamlit || true
+	$(STREAMLIT) run standalone_playbook_dashboard.py --server.port 8507 > $(LOG_DIR)/primary_dashboard.log 2>&1 &
+	sleep 5
+	$(PYTHON) healthcheck.py --smoke
+
+test:
+	@echo "🧪 Running Functional Tests..."
+	$(PYTHON) test_langgraph_soc.py || true
+	$(PYTHON) test_soc_system.py || true
+	$(PYTHON) playbook.py || true
+	$(PYTHON) healthcheck.py --full
+
+secure:
+	@echo "🔐 Running Security Checks..."
+	@$(PYTHON) healthcheck.py --secure
+
+rollback:
+	@echo "⏪ Rolling back to simple dashboard..."
+	bash deploy/access_simple_dashboard.sh
+	@git checkout HEAD -- package-lock.json requirements.txt || true
+	@echo "✅ Rollback complete. Simple dashboard is now active."

@@ -1,0 +1,63 @@
+[Unit]
+Description=Hybrid Cyber Defense Agent - DQN + Gemini SOC Agent
+Documentation=https://github.com/ai-driven-soc/hybrid-defense-agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=raditio
+Group=raditio
+WorkingDirectory=/Users/raditio.ghifiardigmail.com/Downloads/ai-driven-soc
+Environment=PYTHONPATH=/Users/raditio.ghifiardigmail.com/Downloads/ai-driven-soc
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/Users/raditio.ghifiardigmail.com/Downloads/ai-driven-soc/Service Account BigQuery/gatra-user-gemini.json
+ExecStart=/usr/bin/python3 hybrid_cyber_defense_agent.py
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGTERM
+RestartSec=5
+Restart=on-failure
+RestartPreventExitStatus=0
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/Users/raditio.ghifiardigmail.com/Downloads/ai-driven-soc
+ReadWritePaths=/tmp
+ReadWritePaths=/var/tmp
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=hybrid-defense-agent
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryMax=4G
+CPUQuota=200%
+
+# Health check
+WatchdogSec=60
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

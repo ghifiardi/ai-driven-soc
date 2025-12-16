@@ -1,0 +1,152 @@
+{
+  "agent": {
+    "id": "hybrid-cyber-defense-agent",
+    "name": "Hybrid Cyber Defense Agent",
+    "version": "1.0.0",
+    "description": "DQN + Gemini hybrid agent for real-time cyber defense"
+  },
+  "google_cloud": {
+    "project_id": "ai-driven-soc",
+    "location": "us-central1",
+    "credentials_path": "Service Account BigQuery/gatra-user-gemini.json"
+  },
+  "pubsub": {
+    "subscriptions": {
+      "ada_alerts": {
+        "subscription_name": "hybrid-defense-ada-alerts-sub",
+        "topic_name": "ada-alerts",
+        "max_messages": 100,
+        "ack_deadline": 60,
+        "flow_control": {
+          "max_messages": 1000,
+          "max_bytes": 10485760
+        }
+      }
+    },
+    "publishers": {
+      "containment_requests": {
+        "topic_name": "containment-requests",
+        "batch_settings": {
+          "max_messages": 10,
+          "max_latency": 1.0
+        }
+      },
+      "taa_feedback": {
+        "topic_name": "taa-feedback",
+        "batch_settings": {
+          "max_messages": 50,
+          "max_latency": 5.0
+        }
+      }
+    }
+  },
+  "dqn_model": {
+    "enabled": true,
+    "model_path": "models/cyber_defense_dqn.pth",
+    "state_size": 7,
+    "action_size": 5,
+    "inference_timeout": 0.1,
+    "fallback_enabled": true,
+    "confidence_threshold": 0.3
+  },
+  "gemini": {
+    "enabled": true,
+    "model": "gemini-2.0-flash-exp",
+    "temperature": 0.1,
+    "max_output_tokens": 500,
+    "timeout": 5.0,
+    "rate_limit": {
+      "requests_per_minute": 60,
+      "tokens_per_minute": 30000
+    },
+    "prompt_template": "Analyze this cybersecurity situation and explain the recommended defensive action:\n\nAlert: {alert_summary}\nDQN Decision: {action}\nContext: {context}\n\nProvide a clear explanation of:\n1. Why this action is recommended\n2. Potential risks if no action is taken\n3. Expected outcome of this action\n\nKeep response concise and actionable."
+  },
+  "a2a": {
+    "enabled": true,
+    "port": 8083,
+    "host": "0.0.0.0",
+    "discovery_interval": 300,
+    "agent_card": {
+      "name": "hybrid-cyber-defense",
+      "version": "1.0.0",
+      "description": "Real-time cyber defense using DQN + Gemini explanations",
+      "capabilities": [
+        "analyze_security_alert",
+        "recommend_containment_action",
+        "explain_defense_decision",
+        "process_threat_intelligence"
+      ],
+      "endpoints": {
+        "health": "/health",
+        "status": "/status",
+        "metrics": "/metrics",
+        "process_alert": "/a2a/process_alert"
+      }
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "metrics_port": 9090,
+    "health_check_interval": 30,
+    "log_level": "INFO",
+    "structured_logging": true,
+    "metrics": {
+      "alerts_processed_total": "Counter of total alerts processed",
+      "dqn_inference_duration": "Histogram of DQN inference time",
+      "gemini_api_calls_total": "Counter of Gemini API calls",
+      "containment_actions_total": "Counter of containment actions by type",
+      "errors_total": "Counter of errors by type"
+    }
+  },
+  "integration": {
+    "ada_agent": {
+      "enabled": true,
+      "endpoint": "http://localhost:8081",
+      "health_check_path": "/health"
+    },
+    "cra_agent": {
+      "enabled": true,
+      "endpoint": "http://localhost:8084",
+      "health_check_path": "/health"
+    },
+    "cla_agent": {
+      "enabled": true,
+      "endpoint": "http://localhost:8082",
+      "health_check_path": "/health"
+    }
+  },
+  "feature_flags": {
+    "HYBRID_AGENT_ENABLED": true,
+    "DQN_INFERENCE_ENABLED": true,
+    "GEMINI_EXPLANATIONS_ENABLED": true,
+    "A2A_PROTOCOL_ENABLED": true,
+    "CONTAINMENT_PUBLISHING_ENABLED": true,
+    "CLA_FEEDBACK_ENABLED": true
+  },
+  "circuit_breakers": {
+    "dqn_model": {
+      "failure_threshold": 5,
+      "reset_timeout": 300,
+      "enabled": true
+    },
+    "gemini_api": {
+      "failure_threshold": 3,
+      "reset_timeout": 600,
+      "enabled": true
+    },
+    "pubsub_connection": {
+      "failure_threshold": 10,
+      "reset_timeout": 60,
+      "enabled": true
+    }
+  },
+  "security": {
+    "require_authentication": false,
+    "api_key_header": "X-API-Key",
+    "allowed_origins": ["*"],
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 1000
+    }
+  }
+}

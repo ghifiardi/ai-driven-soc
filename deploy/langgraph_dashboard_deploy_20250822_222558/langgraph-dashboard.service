@@ -1,0 +1,15 @@
+[Unit]
+Description=LangGraph ADA Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=app
+WorkingDirectory=/home/app/langgraph-ada-dashboard
+Environment=DASHBOARD_PORT=8507
+ExecStart=/home/app/.local/bin/streamlit run langgraph_ada_dashboard.py --server.port 8507 --server.address 0.0.0.0 --server.headless true
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

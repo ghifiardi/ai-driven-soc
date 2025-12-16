@@ -1,0 +1,40 @@
+Scope
+	•	Target change/feature: Integrate GATRA modules (ADA, TAA, CRA, CLA, CVA) into the existing AI‑driven SOC and digital twin pipeline.  This integration should leverage research‑driven reinforcement learning and secure governance.
+	•	Components/Services: Vertex AI, BigQuery, Pub/Sub, Dataflow, Cloud Composer, OPA Gatekeeper, Cosign, LangGraph orchestrator, Ray, Kubernetes.
+
+Peta File & Simbol (path + [Lx‑Ly] + 1‑line role)
+	•	orchestrator/ – top‑level controller built with LangGraph and Ray; coordinates mutation→evaluation→selection.
+	•	operators/ada_ops.py – feature‑mutation operator for anomaly detection (ADA) targeting PR‑AUC gains.
+	•	operators/taa_ops.py – threshold‑tuning operator for rule‑based threat analysis (TAA).
+	•	operators/cra_ops.py, operators/cla_ops.py, operators/cva_ops.py – operators for case/response (CRA), communications (CLA) and C‑level analytics (CVA), respectively; each uses RL to optimize actions.
+	•	harness/test_runner.py – evaluation harness that executes tests, replays datasets and collects metrics.
+	•	config/system.yaml – global configuration including orchestrator settings, model provider, storage backends, governance switches.
+	•	policies/opa_rules.rego – OPA policy definitions for supply‑chain and runtime compliance.
+	•	cosign_policy.yaml – configuration for verifying container signatures with Cosign.
+
+Alur Eksekusi end‑to‑end (linked to lines)
+	1.	Data ingestion – Security events are streamed via Pub/Sub and processed by Dataflow into BigQuery.  BigQuery acts as the nerve center for storage and analysis: it stores structured and semi‑structured data, runs powerful SQL queries and even trains models via BigQuery ML .
+	2.	Model training & inference – Models built on Vertex AI (AutoML or custom) detect anomalies and fraud more accurately than static rules; they can be retrained periodically to adapt to emerging techniques .
+	3.	Orchestrator – The LangGraph/Ray orchestrator coordinates mutation–evaluation–selection cycles across all operators.  It pulls data from BigQuery, runs RL loops and dispatches evaluation via the harness.
+	4.	Governance & security – Cosign and OPA Gatekeeper ensure all containers are signed and verified before deployment, preventing tampering .
+	5.	Feedback loop – Analysts’ decisions and outcome metrics (redundancy, entropy, triage efficiency) are logged back into BigQuery and feed RL reward functions and threshold tuning.
+	6.	Presentation – Looker or custom dashboards display real‑time analytics and fraud alerts; serverless architecture improves detection accuracy and reduces false positives .
+
+Tes & Observabilitas
+	•	BigQuery Phase 1 metrics (redundancy, entropy index, processing time) monitor SOC health and should be incorporated into evaluation.
+	•	Evaluation harness metrics: precision, recall, F1, latency, cost, RL reward.  Test replays on synthetic/real datasets and verify safe action spaces.
+	•	OPA Gatekeeper rules verify Cosign signatures and enforce policy.  Alerts fire when unsigned images attempt deployment .
+	•	Prometheus/Grafana dashboards monitor pipeline latency, throughput and RL performance.
+
+Risiko & Asumsi
+	•	Assumes GCP services (BigQuery, Vertex AI, Dataflow, Pub/Sub) are provisioned and accessible.
+	•	Model drift can occur if attack patterns change faster than retraining; mitigation: schedule frequent retrains and monitor performance.
+	•	Latency/cost overhead from RL loops and external calls; mitigation: batch requests and tune RL frequency.
+	•	Security – All artifacts must be signed; misconfigurations may block valid deployments .
+	•	Compliance – Data must be pseudonymised; align with local regulations (e.g., PDPL, OJK).
+
+Bukti (3–5 mini snippets)
+	•	Vertex AI AutoML can retrain models periodically to adapt to new fraud techniques .
+	•	BigQuery provides centralized storage, powerful queries and ML capabilities .
+	•	Cosign code signing and OPA Gatekeeper enforce artifact authenticity and prevent tampering .
+	•	GCP‑based architectures claim up to 30 % improvement in fraud‑detection accuracy and 40 % cost reduction .

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AI Automation</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .ready { background: #d4edda; color: #155724; }
+        .running { background: #d1ecf1; color: #0c5460; }
+        .completed { background: #d4edda; color: #155724; }
+        .failed { background: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .progress { margin: 20px 0; }
+        .step { padding: 10px; margin: 5px 0; border-left: 4px solid #ccc; }
+        .step.processing { border-left-color: #007bff; background: #f8f9fa; }
+        .step.completed { border-left-color: #28a745; background: #d4edda; }
+        .step.failed { border-left-color: #dc3545; background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>🤖 AI Automation Test</h1>
+    
+    <div id="status" class="status ready">
+        Status: Ready
+    </div>
+    
+    <button onclick="startAutomation()">🚀 Start AI Automation</button>
+    <button onclick="checkProgress()">📊 Check Progress</button>
+    <button onclick="checkStatus()">🔍 Check Status</button>
+    
+    <div class="progress">
+        <h3>Progress Steps:</h3>
+        <div id="progressSteps"></div>
+    </div>
+    
+    <div>
+        <h3>Console Output:</h3>
+        <div id="console" style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; height: 200px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        
+        function log(message) {
+            const console = document.getElementById('console');
+            const time = new Date().toLocaleTimeString();
+            console.innerHTML += `[${time}] ${message}<br>`;
+            console.scrollTop = console.scrollHeight;
+        }
+        
+        function updateStatus(status, message) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${status}`;
+            statusDiv.innerHTML = `Status: ${message}`;
+        }
+        
+        async function startAutomation() {
+            try {
+                log('🚀 Starting AI automation...');
+                updateStatus('running', 'Starting...');
+                
+                const response = await fetch(`${API_BASE}/api/automate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        client_id: 'TEST-' + Date.now(),
+                        originCity: 'Jakarta',
+                        destinationCity: 'Paris',
+                        departureDate: '2024-12-15',
+                        totalBudget: 5000
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                log(`✅ Automation started: ${JSON.stringify(result)}`);
+                updateStatus('running', 'Running...');
+                
+                // Start monitoring progress
+                monitorProgress();
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+                updateStatus('failed', 'Failed');
+            }
+        }
+        
+        async function checkProgress() {
+            try {
+                const response = await fetch(`${API_BASE}/api/progress`);
+                const data = await response.json();
+                log(`📊 Progress: ${JSON.stringify(data)}`);
+                
+                updateProgressSteps(data.steps);
+                
+            } catch (error) {
+                log(`❌ Error checking progress: ${error.message}`);
+            }
+        }
+        
+        async function checkStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/status`);
+                const data = await response.json();
+                log(`🔍 Status: ${JSON.stringify(data)}`);
+                
+            } catch (error) {
+                log(`❌ Error checking status: ${error.message}`);
+            }
+        }
+        
+        function updateProgressSteps(steps) {
+            const progressDiv = document.getElementById('progressSteps');
+            progressDiv.innerHTML = '';
+            
+            if (steps.length === 0) {
+                progressDiv.innerHTML = '<p>No progress steps yet...</p>';
+                return;
+            }
+            
+            steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = `step ${step.status}`;
+                stepDiv.innerHTML = `
+                    <strong>${index + 1}. ${step.name}</strong><br>
+                    <small>${step.message}</small>
+                `;
+                progressDiv.appendChild(stepDiv);
+            });
+        }
+        
+        function monitorProgress() {
+            // Check progress every 2 seconds
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/api/progress`);
+                    const data = await response.json();
+                    
+                    log(`📊 Progress update: ${data.steps.length} steps, status: ${data.overall_status}`);
+                    
+                    updateProgressSteps(data.steps);
+                    
+                    if (data.overall_status === 'completed') {
+                        log('🎉 Automation completed!');
+                        updateStatus('completed', 'Completed!');
+                        clearInterval(interval);
+                    } else if (data.overall_status === 'failed') {
+                        log('❌ Automation failed!');
+                        updateStatus('failed', 'Failed!');
+                        clearInterval(interval);
+                    }
+                    
+                } catch (error) {
+                    log(`❌ Error monitoring progress: ${error.message}`);
+                }
+            }, 2000);
+        }
+        
+        // Initial status check
+        checkStatus();
+        log('✅ Test page loaded and ready');
+    </script>
+</body>
+</html>
