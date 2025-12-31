@@ -1,5 +1,15 @@
 # AI-Driven SOC (GATRA-Aligned) Technical Overview
 
+> **⚠️ PROPRIETARY SOFTWARE - ALL RIGHTS RESERVED**
+>
+> This codebase is proprietary and confidential. Unauthorized copying, forking, cloning, or use is strictly prohibited. See [LICENSE](LICENSE) for details.
+>
+> **For licensing inquiries:** Contact the repository owner
+>
+> 🎥 **[Watch Demo Video](#demo)** | 📄 **[View Documentation](docs/)**
+
+---
+
 This repository contains the LangGraph-powered Anomaly Detection Agent (ADA) and supporting services that underpin an autonomous, multi-tenant Security Operations Center (SOC) aligned with the GATRA SaaS Technical Implementation Guide. The codebase now captures the architectural guardrails required to scale from single-tenant prototypes to a 50K events-per-second multi-tenant platform with ADA/TAA streaming, Pub/Sub orchestration, and GCP-native deployment paths.
 
 ---
