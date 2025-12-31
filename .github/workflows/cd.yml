@@ -2,12 +2,14 @@
 # Continuous Deployment Workflow
 # =============================================================================
 # Deploys to GCP when changes are merged to main branch.
+# NOTE: This workflow requires GCP secrets to be configured.
+# It will be skipped if secrets are not set.
 
 name: CD
 
 on:
+  # Only trigger on tags (releases) - not on every push to main
   push:
-    branches: [main]
     tags:
       - 'v*'
   workflow_dispatch:
