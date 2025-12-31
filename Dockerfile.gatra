@@ -6,19 +6,39 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    git \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install python dependencies
+# Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir networkx dowhy
+
+# Install Python dependencies with increased timeout
+# Install torch separately with CPU-only version for smaller image
+RUN pip install --no-cache-dir --timeout=300 \
+    torch==2.1.2+cpu \
+    torchvision==0.16.2+cpu \
+    -f https://download.pytorch.org/whl/cpu/torch_stable.html || \
+    pip install --no-cache-dir torch torchvision
+
+# Install remaining requirements
+RUN pip install --no-cache-dir --timeout=300 -r requirements.txt || \
+    pip install --no-cache-dir -r requirements.txt --ignore-installed
 
 # Copy the rest of the application
 COPY . .
 
-# Expose ports for API
-EXPOSE 8081
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash app && \
+    chown -R app:app /app
+USER app
 
-# Command to run the MSSP Platform Server which hosts GATRA
+# Expose ports for API
+EXPOSE 8080 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health/live || exit 1
+
+# Command to run the MSSP Platform Server
 CMD ["python", "mssp_platform_server.py"]
