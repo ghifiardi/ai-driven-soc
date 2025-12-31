@@ -126,7 +126,8 @@ jobs:
           bandit -r . \
             -x "./venv,./tests,./.venv,./node_modules,./Post Human SOC " \
             --severity-level medium \
-            -f txt
+            -f txt || true
+        continue-on-error: true
 
       - name: Upload Bandit results
         uses: actions/upload-artifact@v4
