@@ -1516,428 +1516,428 @@ def alert_review_page():
         try:
             # Filter alerts_df to get the exact row matching selected_alert
             matching_alerts = alerts_df[alerts_df['alert_id'].astype(str) == str(selected_alert)]
-                
-                if matching_alerts.empty:
-                    st.error(f"⚠️ Alert {selected_alert} not found in current dataset!")
-                    st.stop()
-                
-                selected_alert_data = matching_alerts.iloc[0]
-                
-                # If aggregated, get group members
-                if agg_toggle and isinstance(aggregated, pd.DataFrame) and not aggregated.empty:
-                    agg_match = aggregated[aggregated['alert_id'].astype(str) == str(selected_alert)]
-                    if not agg_match.empty:
-                        group_key = agg_match['group_id'].iloc[0]
-                        members = group_members.get(group_key, [])
-                    else:
-                        members = [str(selected_alert)]
+
+            if matching_alerts.empty:
+                st.error(f"Alert {selected_alert} not found in current dataset!")
+                st.stop()
+
+            selected_alert_data = matching_alerts.iloc[0]
+
+            # If aggregated, get group members
+            if agg_toggle and isinstance(aggregated, pd.DataFrame) and not aggregated.empty:
+                agg_match = aggregated[aggregated['alert_id'].astype(str) == str(selected_alert)]
+                if not agg_match.empty:
+                    group_key = agg_match['group_id'].iloc[0]
+                    members = group_members.get(group_key, [])
                 else:
                     members = [str(selected_alert)]
-                
-                # TRIPLE VERIFICATION: Display what we actually selected
-                st.success(f"✅ **Reviewing Alert:** `{str(selected_alert_data['alert_id'])}`")
-                st.caption(f"🔍 Verification: Dropdown={selected_alert} | Fetched={selected_alert_data['alert_id']}")
-                
-                # Show group membership when aggregated
-                if agg_toggle and isinstance(aggregated, pd.DataFrame) and not aggregated.empty:
-                    with st.expander("Group members"):
-                        st.write(members)
-            except Exception as e:
-                st.error(f"Error loading alert details: {e}")
-                st.stop()
-            
-            st.subheader("📋 Alert Details for Review")
-            
-            # Create columns for alert information
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.metric("Alert ID", selected_alert_data['alert_id'])
-                st.metric("Severity", selected_alert_data['severity'])
-                st.metric("Classification", selected_alert_data['classification'])
-            
-            with col2:
-                # Convert timestamp to Jakarta timezone
-                try:
-                    if pd.notna(selected_alert_data['timestamp']):
-                        # Convert to Jakarta timezone
-                        jakarta_tz = pytz.timezone('Asia/Jakarta')
-                        if selected_alert_data['timestamp'].tzinfo is None:
-                            # If no timezone info, assume UTC
-                            utc_timestamp = pytz.utc.localize(selected_alert_data['timestamp'])
-                        else:
-                            utc_timestamp = selected_alert_data['timestamp']
-                        
-                        jakarta_timestamp = utc_timestamp.astimezone(jakarta_tz)
-                        timestamp_str = jakarta_timestamp.strftime('%Y-%m-%d %H:%M:%S %Z')
-                    else:
-                        timestamp_str = "N/A"
-                except Exception as e:
-                    timestamp_str = "Invalid timestamp"
-                
-                st.metric("Timestamp", timestamp_str)
-                st.metric("Confidence Score", f"{selected_alert_data['confidence_score']:.2f}")
-                
-                # Fix the boolean NA issue
-                is_anomaly_value = selected_alert_data['is_anomaly']
-                if pd.isna(is_anomaly_value):
-                    anomaly_display = "Unknown"
-                else:
-                    anomaly_display = "Yes" if is_anomaly_value else "No"
-                st.metric("Is Anomaly", anomaly_display)
-            
-            with col3:
-                # Show model recommendations and extracted parameters
-                st.subheader("🤖 Model Analysis & Recommendations")
-                
-                # Extract and display key parameters
-                extracted_params = extract_alert_parameters(selected_alert_data)
-                
-                if extracted_params:
-                    # Display extracted parameters
-                    st.markdown("**🔍 Extracted Parameters:**")
-                    
-                    # IP Addresses
-                    if extracted_params.get('ip_addresses'):
-                        st.markdown(f"**IP Addresses:** {', '.join(extracted_params['ip_addresses'])}")
-                    
-                    # IOCs
-                    if extracted_params.get('iocs'):
-                        st.markdown(f"**IOCs:** {', '.join(extracted_params['iocs'])}")
-                    
-                    # TTPs
-                    if extracted_params.get('ttps'):
-                        st.markdown(f"**TTPs:** {', '.join(extracted_params['ttps'])}")
-                    
-                    # Network Flow
-                    if extracted_params.get('network_flow'):
-                        st.markdown(f"**Network Flow:** {extracted_params['network_flow']}")
-                    
-                    # Bytes Transferred
-                    if extracted_params.get('bytes_transferred'):
-                        st.markdown(f"**Bytes Transferred:** {extracted_params['bytes_transferred']:,}")
-                    
-                    st.markdown("---")
-                
-                # Model recommendations
-                recommendations = generate_model_recommendations(selected_alert_data, extracted_params)
-                
-                if recommendations:
-                    st.markdown("**🎯 Model Recommendations:**")
-                    for rec in recommendations:
-                        st.markdown(f"• {rec}")
-                
-                # Detailed Analysis Section
-                st.markdown("---")
-                st.markdown("**🔍 Detailed Analysis:**")
-                
-                # Network Flow Analysis
-                if extracted_params.get('ip_addresses') or extracted_params.get('network_flow'):
-                    st.markdown("**📡 Network Flow Analysis:**")
-                    
-                    if extracted_params.get('ip_addresses'):
-                        ip_count = len(extracted_params['ip_addresses'])
-                        if ip_count > 1:
-                            st.markdown(f"• **Multiple IPs Detected:** {ip_count} endpoints involved")
-                            st.markdown("• **Risk:** Potential lateral movement or coordinated attack")
-                        else:
-                            st.markdown(f"• **Single IP:** {extracted_params['ip_addresses'][0]}")
-                            st.markdown("• **Focus:** Investigate this specific endpoint")
-                    
-                    if extracted_params.get('network_flow'):
-                        st.markdown(f"• **Flow Details:** {extracted_params['network_flow']}")
-                
-                # Data Transfer Analysis
-                if extracted_params.get('bytes_transferred'):
-                    bytes_transferred = extracted_params['bytes_transferred']
-                    st.markdown("**📊 Data Transfer Analysis:**")
-                    st.markdown(f"• **Volume:** {bytes_transferred:,} bytes ({bytes_transferred/1024/1024:.1f} MB)")
-                    
-                    if bytes_transferred > 1000000000:  # 1GB
-                        st.markdown("• **🚨 HIGH RISK:** Large data transfer - potential exfiltration")
-                        st.markdown("• **Action:** Immediate investigation required")
-                    elif bytes_transferred > 100000000:  # 100MB
-                        st.markdown("• **⚠️ MEDIUM RISK:** Significant data transfer")
-                        st.markdown("• **Action:** Verify if this is expected business activity")
-                    else:
-                        st.markdown("• **✅ LOW RISK:** Normal data transfer volume")
-                
-                # Threat Assessment
-                st.markdown("**🛡️ Threat Assessment:**")
-                
-                # Confidence Analysis
-                if 'confidence_score' in selected_alert_data:
-                    confidence = selected_alert_data['confidence_score']
-                    if confidence > 0.8:
-                        st.markdown(f"• **High Confidence ({confidence:.2f}):** Model is very certain")
-                        st.markdown("• **Recommendation:** Prioritize investigation")
-                    elif confidence > 0.6:
-                        st.markdown(f"• **Medium Confidence ({confidence:.2f}):** Model is moderately certain")
-                        st.markdown("• **Recommendation:** Review with additional context")
-                    else:
-                        st.markdown(f"• **Low Confidence ({confidence:.2f}):** Model is uncertain")
-                        st.markdown("• **Recommendation:** May be false positive")
-                
-                # Severity Analysis
-                if 'severity' in selected_alert_data:
-                    severity = selected_alert_data['severity']
-                    if severity == 'High':
-                        st.markdown("• **🔴 High Severity:** Immediate attention required")
-                        st.markdown("• **Timeline:** Investigate within 1 hour")
-                    elif severity == 'Medium':
-                        st.markdown("• **🟡 Medium Severity:** Schedule investigation")
-                        st.markdown("• **Timeline:** Investigate within 4 hours")
-                    else:
-                        st.markdown("• **🟢 Low Severity:** Monitor and review")
-                        st.markdown("• **Timeline:** Investigate within 24 hours")
-                
-                # Investigation Questions
-                st.markdown("**❓ Key Investigation Questions:**")
-                st.markdown("• Is this communication expected for business operations?")
-                st.markdown("• Are the involved IP addresses authorized for this activity?")
-                st.markdown("• Does the data transfer volume match normal patterns?")
-                st.markdown("• Are there similar activities in the environment?")
-                st.markdown("• What is the business context of this communication?")
-                
-                # Enhanced Action Items with TI, Bandit, RAG, TTPs, and Historical Context
-                st.markdown("**📋 Enhanced Recommended Actions:**")
-                
-                # Threat Intelligence Lookup
-                st.markdown("**🔍 Threat Intelligence Lookup:**")
-                ti_ips = extracted_params.get('ip_addresses', [])
-                # Also consider common fields for visibility
-                for k in ['source_ip','src_ip','destination_ip','dst_ip','ip','client_ip','server_ip']:
-                    if k in selected_alert_data and pd.notna(selected_alert_data[k]):
-                        ti_ips.append(str(selected_alert_data[k]))
-                ti_ips = list(dict.fromkeys(ti_ips))  # de-duplicate preserving order
-                if ti_ips:
-                    for ip in ti_ips[:10]:  # cap to avoid overly long lists
-                        st.markdown(f"• **IP {ip}:** [VirusTotal](https://www.virustotal.com/gui/ip-address/{ip}) | [AbuseIPDB](https://www.abuseipdb.com/check/{ip}) | [Shodan](https://www.shodan.io/host/{ip})")
-                else:
-                    st.info("No IPs were detected in this alert. If this is a network alert, ensure `raw_alert` includes source/destination fields.")
-                
-                # Contextual Bandit Recommendations
-                st.markdown("**🎯 Contextual Bandit Analysis:**")
-                bandit_recommendations = generate_contextual_bandit_recommendations(selected_alert_data, extracted_params)
-                for rec in bandit_recommendations:
-                    st.markdown(f"• {rec}")
-                
-                # RAG-Enhanced Context
-                st.markdown("**🧠 RAG-Enhanced Context:**")
-                rag_context = generate_rag_context(selected_alert_data, extracted_params)
-                for context in rag_context:
-                    st.markdown(f"• {context}")
-                
-                # TTP Analysis and Mapping
-                st.markdown("**📋 TTP Analysis & MITRE ATT&CK Mapping:**")
-                ttp_analysis = generate_ttp_analysis(selected_alert_data, extracted_params)
-                for ttp in ttp_analysis:
-                    st.markdown(f"• {ttp}")
-                
-                # Historical Incident Correlation
-                st.markdown("**📊 Historical Incident Correlation:**")
-                historical_incidents = generate_historical_correlation(selected_alert_data, extracted_params)
-                for incident in historical_incidents:
-                    st.markdown(f"• {incident}")
-                
-                # Specific Investigative Steps
-                st.markdown("**🔬 Detailed Investigative Steps:**")
-                investigative_steps = generate_investigative_steps(selected_alert_data, extracted_params)
-                for step in investigative_steps:
-                    st.markdown(f"• {step}")
-                
-                # Risk-Based Actions
-                st.markdown("**⚡ Risk-Based Immediate Actions:**")
-                if extracted_params.get('bytes_transferred', 0) > 1000000000:
-                    st.markdown("• **🚨 CRITICAL:** Implement network isolation for affected endpoints")
-                    st.markdown("• **🔒 IMMEDIATE:** Block suspicious IP addresses at firewall")
-                    st.markdown("• **📞 ESCALATE:** Notify incident response team within 15 minutes")
-                    st.markdown("• **💾 PRESERVE:** Collect and preserve all relevant logs and artifacts")
-                elif extracted_params.get('bytes_transferred', 0) > 100000000:
-                    st.markdown("• **⚠️ HIGH:** Monitor network traffic for similar patterns")
-                    st.markdown("• **🔍 INVESTIGATE:** Verify data transfer authorization within 2 hours")
-                    st.markdown("• **📝 DOCUMENT:** Record all findings and observations")
-                else:
-                    st.markdown("• **✅ STANDARD:** Follow normal investigation procedures")
-                    st.markdown("• **📋 REVIEW:** Complete investigation within 24 hours")
-                    st.markdown("• **🔄 MONITOR:** Watch for similar activities")
-                
-                # Show raw alert data if available
-                with st.expander("📄 Raw Alert Data (Click to expand)"):
-                    if 'raw_alert' in selected_alert_data and pd.notna(selected_alert_data['raw_alert']):
-                        st.json(selected_alert_data['raw_alert'])
-                    else:
-                        st.info("No additional raw data available for this alert")
-            
-            st.markdown("---")
-            
-            # Feedback form
-            st.subheader("📝 Provide Feedback")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                is_true_positive = st.radio(
-                    "Is this a true positive?",
-                    ["Yes", "No"],
-                    key="feedback_tp",
-                    help="True Positive: This is a legitimate security threat that requires attention"
-                )
-            
-            with col2:
-                confidence = st.slider(
-                    "Confidence in your assessment",
-                    min_value=0.0,
-                    max_value=1.0,
-                    value=0.8,
-                    step=0.1,
-                    help="How confident are you in your assessment? (0.0 = Not confident, 1.0 = Very confident)"
-                )
-        
-            comments = st.text_area(
-                "Additional Comments (Optional)",
-                placeholder="Provide additional context, observations, or reasoning for your assessment...",
-                help="Include any additional context that might help improve the model's understanding"
-            )
-            
-            # Submit button with validation
-            if st.button("Submit Feedback", type="primary"):
-                if selected_alert:
-                    ok = submit_real_feedback(
-                        alert_id=selected_alert,
-                        is_true_positive=(is_true_positive == "Yes"),
-                        confidence=confidence,
-                        comments=comments,
-                    )
-                    if ok:
-                        st.session_state.feedback_submitted = True
-                        st.success(f"✅ Feedback submitted for alert {selected_alert}")
-                        st.info("Feedback is stored in BigQuery table `soc_data.feedback`.")
-                    else:
-                        st.error("Feedback submission failed. See error above.")
-                else:
-                    st.error("Please select an alert to provide feedback on")
-            
-            # Store selected alert in session state for chat context
-            if 'selected_alert_data' in locals() and selected_alert_data is not None:
-                st.session_state.current_alert_context = {
-                    'alert_id': str(selected_alert_data.get('alert_id', 'N/A')),
-                    'classification': str(selected_alert_data.get('classification', 'N/A')),
-                    'severity': str(selected_alert_data.get('severity', 'N/A')),
-                    'confidence_score': float(selected_alert_data.get('confidence_score', 0)),
-                    'timestamp': str(selected_alert_data.get('timestamp', 'N/A'))
-                }
-            
-            # AI Assistant Chat Section
-            st.markdown("---")
-            st.subheader("💬 AI Assistant Chat")
-            
-            # Show LLM status
-            llm_available = st.session_state.gemini_model is not None or GENAI_AVAILABLE
-            if llm_available:
-                st.success("✅ **Powered by Google Gemini Flash 2.5** - Real-time threat intelligence")
             else:
-                st.info("🤖 **Enhanced AI Analysis** - Using advanced predefined responses")
-            
-            # Display chat history
-            if st.session_state.chat_history:
-                st.markdown("### 💬 Conversation History")
-                for i, msg in enumerate(st.session_state.chat_history):
-                    if msg['role'] == 'user':
-                        st.markdown(f"**🧑 You:** {msg['content']}")
+                members = [str(selected_alert)]
+
+            # TRIPLE VERIFICATION: Display what we actually selected
+            st.success(f"**Reviewing Alert:** `{str(selected_alert_data['alert_id'])}`")
+            st.caption(f"Verification: Dropdown={selected_alert} | Fetched={selected_alert_data['alert_id']}")
+
+            # Show group membership when aggregated
+            if agg_toggle and isinstance(aggregated, pd.DataFrame) and not aggregated.empty:
+                with st.expander("Group members"):
+                    st.write(members)
+        except Exception as e:
+            st.error(f"Error loading alert details: {e}")
+            st.stop()
+
+        st.subheader("Alert Details for Review")
+
+        # Create columns for alert information
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.metric("Alert ID", selected_alert_data['alert_id'])
+            st.metric("Severity", selected_alert_data['severity'])
+            st.metric("Classification", selected_alert_data['classification'])
+
+        with col2:
+            # Convert timestamp to Jakarta timezone
+            try:
+                if pd.notna(selected_alert_data['timestamp']):
+                    # Convert to Jakarta timezone
+                    jakarta_tz = pytz.timezone('Asia/Jakarta')
+                    if selected_alert_data['timestamp'].tzinfo is None:
+                        # If no timezone info, assume UTC
+                        utc_timestamp = pytz.utc.localize(selected_alert_data['timestamp'])
                     else:
-                        st.markdown(f"**🤖 AI Assistant:**\n\n{msg['content']}")
-                    st.markdown("---")
-            
-            # Chat input
-            user_input = st.text_input(
-                "Ask the AI assistant about this alert:",
-                placeholder="e.g., 'How should I investigate this alert?' or 'What's the threat level?'",
-                key="chat_input"
+                        utc_timestamp = selected_alert_data['timestamp']
+
+                    jakarta_timestamp = utc_timestamp.astimezone(jakarta_tz)
+                    timestamp_str = jakarta_timestamp.strftime('%Y-%m-%d %H:%M:%S %Z')
+                else:
+                    timestamp_str = "N/A"
+            except Exception as e:
+                timestamp_str = "Invalid timestamp"
+
+            st.metric("Timestamp", timestamp_str)
+            st.metric("Confidence Score", f"{selected_alert_data['confidence_score']:.2f}")
+
+            # Fix the boolean NA issue
+            is_anomaly_value = selected_alert_data['is_anomaly']
+            if pd.isna(is_anomaly_value):
+                anomaly_display = "Unknown"
+            else:
+                anomaly_display = "Yes" if is_anomaly_value else "No"
+            st.metric("Is Anomaly", anomaly_display)
+
+        with col3:
+            # Show model recommendations and extracted parameters
+            st.subheader("Model Analysis & Recommendations")
+
+            # Extract and display key parameters
+            extracted_params = extract_alert_parameters(selected_alert_data)
+
+            if extracted_params:
+                # Display extracted parameters
+                st.markdown("**Extracted Parameters:**")
+
+                # IP Addresses
+                if extracted_params.get('ip_addresses'):
+                    st.markdown(f"**IP Addresses:** {', '.join(extracted_params['ip_addresses'])}")
+
+                # IOCs
+                if extracted_params.get('iocs'):
+                    st.markdown(f"**IOCs:** {', '.join(extracted_params['iocs'])}")
+
+                # TTPs
+                if extracted_params.get('ttps'):
+                    st.markdown(f"**TTPs:** {', '.join(extracted_params['ttps'])}")
+
+                # Network Flow
+                if extracted_params.get('network_flow'):
+                    st.markdown(f"**Network Flow:** {extracted_params['network_flow']}")
+
+                # Bytes Transferred
+                if extracted_params.get('bytes_transferred'):
+                    st.markdown(f"**Bytes Transferred:** {extracted_params['bytes_transferred']:,}")
+
+                st.markdown("---")
+
+            # Model recommendations
+            recommendations = generate_model_recommendations(selected_alert_data, extracted_params)
+
+            if recommendations:
+                st.markdown("**Model Recommendations:**")
+                for rec in recommendations:
+                    st.markdown(f"* {rec}")
+
+            # Detailed Analysis Section
+            st.markdown("---")
+            st.markdown("**Detailed Analysis:**")
+
+            # Network Flow Analysis
+            if extracted_params.get('ip_addresses') or extracted_params.get('network_flow'):
+                st.markdown("**Network Flow Analysis:**")
+
+                if extracted_params.get('ip_addresses'):
+                    ip_count = len(extracted_params['ip_addresses'])
+                    if ip_count > 1:
+                        st.markdown(f"* **Multiple IPs Detected:** {ip_count} endpoints involved")
+                        st.markdown("* **Risk:** Potential lateral movement or coordinated attack")
+                    else:
+                        st.markdown(f"* **Single IP:** {extracted_params['ip_addresses'][0]}")
+                        st.markdown("* **Focus:** Investigate this specific endpoint")
+
+                if extracted_params.get('network_flow'):
+                    st.markdown(f"* **Flow Details:** {extracted_params['network_flow']}")
+
+            # Data Transfer Analysis
+            if extracted_params.get('bytes_transferred'):
+                bytes_transferred = extracted_params['bytes_transferred']
+                st.markdown("**Data Transfer Analysis:**")
+                st.markdown(f"* **Volume:** {bytes_transferred:,} bytes ({bytes_transferred/1024/1024:.1f} MB)")
+
+                if bytes_transferred > 1000000000:  # 1GB
+                    st.markdown("* **HIGH RISK:** Large data transfer - potential exfiltration")
+                    st.markdown("* **Action:** Immediate investigation required")
+                elif bytes_transferred > 100000000:  # 100MB
+                    st.markdown("* **MEDIUM RISK:** Significant data transfer")
+                    st.markdown("* **Action:** Verify if this is expected business activity")
+                else:
+                    st.markdown("* **LOW RISK:** Normal data transfer volume")
+
+            # Threat Assessment
+            st.markdown("**Threat Assessment:**")
+
+            # Confidence Analysis
+            if 'confidence_score' in selected_alert_data:
+                confidence = selected_alert_data['confidence_score']
+                if confidence > 0.8:
+                    st.markdown(f"* **High Confidence ({confidence:.2f}):** Model is very certain")
+                    st.markdown("* **Recommendation:** Prioritize investigation")
+                elif confidence > 0.6:
+                    st.markdown(f"* **Medium Confidence ({confidence:.2f}):** Model is moderately certain")
+                    st.markdown("* **Recommendation:** Review with additional context")
+                else:
+                    st.markdown(f"* **Low Confidence ({confidence:.2f}):** Model is uncertain")
+                    st.markdown("* **Recommendation:** May be false positive")
+
+            # Severity Analysis
+            if 'severity' in selected_alert_data:
+                severity = selected_alert_data['severity']
+                if severity == 'High':
+                    st.markdown("* **High Severity:** Immediate attention required")
+                    st.markdown("* **Timeline:** Investigate within 1 hour")
+                elif severity == 'Medium':
+                    st.markdown("* **Medium Severity:** Schedule investigation")
+                    st.markdown("* **Timeline:** Investigate within 4 hours")
+                else:
+                    st.markdown("* **Low Severity:** Monitor and review")
+                    st.markdown("* **Timeline:** Investigate within 24 hours")
+
+            # Investigation Questions
+            st.markdown("**Key Investigation Questions:**")
+            st.markdown("* Is this communication expected for business operations?")
+            st.markdown("* Are the involved IP addresses authorized for this activity?")
+            st.markdown("* Does the data transfer volume match normal patterns?")
+            st.markdown("* Are there similar activities in the environment?")
+            st.markdown("* What is the business context of this communication?")
+
+            # Enhanced Action Items with TI, Bandit, RAG, TTPs, and Historical Context
+            st.markdown("**Enhanced Recommended Actions:**")
+
+            # Threat Intelligence Lookup
+            st.markdown("**Threat Intelligence Lookup:**")
+            ti_ips = extracted_params.get('ip_addresses', [])
+            # Also consider common fields for visibility
+            for k in ['source_ip','src_ip','destination_ip','dst_ip','ip','client_ip','server_ip']:
+                if k in selected_alert_data and pd.notna(selected_alert_data[k]):
+                    ti_ips.append(str(selected_alert_data[k]))
+            ti_ips = list(dict.fromkeys(ti_ips))  # de-duplicate preserving order
+            if ti_ips:
+                for ip in ti_ips[:10]:  # cap to avoid overly long lists
+                    st.markdown(f"* **IP {ip}:** [VirusTotal](https://www.virustotal.com/gui/ip-address/{ip}) | [AbuseIPDB](https://www.abuseipdb.com/check/{ip}) | [Shodan](https://www.shodan.io/host/{ip})")
+            else:
+                st.info("No IPs were detected in this alert. If this is a network alert, ensure `raw_alert` includes source/destination fields.")
+
+            # Contextual Bandit Recommendations
+            st.markdown("**Contextual Bandit Analysis:**")
+            bandit_recommendations = generate_contextual_bandit_recommendations(selected_alert_data, extracted_params)
+            for rec in bandit_recommendations:
+                st.markdown(f"* {rec}")
+
+            # RAG-Enhanced Context
+            st.markdown("**RAG-Enhanced Context:**")
+            rag_context = generate_rag_context(selected_alert_data, extracted_params)
+            for context in rag_context:
+                st.markdown(f"* {context}")
+
+            # TTP Analysis and Mapping
+            st.markdown("**TTP Analysis & MITRE ATT&CK Mapping:**")
+            ttp_analysis = generate_ttp_analysis(selected_alert_data, extracted_params)
+            for ttp in ttp_analysis:
+                st.markdown(f"* {ttp}")
+
+            # Historical Incident Correlation
+            st.markdown("**Historical Incident Correlation:**")
+            historical_incidents = generate_historical_correlation(selected_alert_data, extracted_params)
+            for incident in historical_incidents:
+                st.markdown(f"* {incident}")
+
+            # Specific Investigative Steps
+            st.markdown("**Detailed Investigative Steps:**")
+            investigative_steps = generate_investigative_steps(selected_alert_data, extracted_params)
+            for step in investigative_steps:
+                st.markdown(f"* {step}")
+
+            # Risk-Based Actions
+            st.markdown("**Risk-Based Immediate Actions:**")
+            if extracted_params.get('bytes_transferred', 0) > 1000000000:
+                st.markdown("* **CRITICAL:** Implement network isolation for affected endpoints")
+                st.markdown("* **IMMEDIATE:** Block suspicious IP addresses at firewall")
+                st.markdown("* **ESCALATE:** Notify incident response team within 15 minutes")
+                st.markdown("* **PRESERVE:** Collect and preserve all relevant logs and artifacts")
+            elif extracted_params.get('bytes_transferred', 0) > 100000000:
+                st.markdown("* **HIGH:** Monitor network traffic for similar patterns")
+                st.markdown("* **INVESTIGATE:** Verify data transfer authorization within 2 hours")
+                st.markdown("* **DOCUMENT:** Record all findings and observations")
+            else:
+                st.markdown("* **STANDARD:** Follow normal investigation procedures")
+                st.markdown("* **REVIEW:** Complete investigation within 24 hours")
+                st.markdown("* **MONITOR:** Watch for similar activities")
+
+            # Show raw alert data if available
+            with st.expander("Raw Alert Data (Click to expand)"):
+                if 'raw_alert' in selected_alert_data and pd.notna(selected_alert_data['raw_alert']):
+                    st.json(selected_alert_data['raw_alert'])
+                else:
+                    st.info("No additional raw data available for this alert")
+
+        st.markdown("---")
+
+        # Feedback form
+        st.subheader("Provide Feedback")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            is_true_positive = st.radio(
+                "Is this a true positive?",
+                ["Yes", "No"],
+                key="feedback_tp",
+                help="True Positive: This is a legitimate security threat that requires attention"
             )
-            
-            col_send, col_clear = st.columns([4, 1])
-            with col_send:
-                if st.button("Send Message", type="primary", use_container_width=True):
-                    if user_input.strip():
-                        with st.spinner("🤖 Generating response..."):
-                            # Add user message to history
-                            st.session_state.chat_history.append({
-                                'role': 'user',
-                                'content': user_input
-                            })
-                            
-                            # Get AI response with stored context
-                            alert_context = st.session_state.get('current_alert_context', None)
-                            response = generate_chat_response(user_input, alert_context)
-                            
-                            # Add AI response to history
-                            st.session_state.chat_history.append({
-                                'role': 'assistant',
-                                'content': response
-                            })
-                        
-                        # Show success message
-                        st.success("✅ Response generated!")
-                        # Force rerun to display new messages
-                        st.rerun()
-                    else:
-                        st.warning("Please enter a message first")
-            
-            with col_clear:
-                if st.button("Clear Chat", use_container_width=True):
-                    st.session_state.chat_history = []
-                    st.rerun()
-            
-            # Quick action buttons
-            st.markdown("**Quick Questions:**")
-            quick_q_col1, quick_q_col2, quick_q_col3 = st.columns(3)
-            
-            with quick_q_col1:
-                if st.button("🔍 How to investigate?", use_container_width=True):
-                    with st.spinner("🤖 Generating response..."):
+
+        with col2:
+            confidence = st.slider(
+                "Confidence in your assessment",
+                min_value=0.0,
+                max_value=1.0,
+                value=0.8,
+                step=0.1,
+                help="How confident are you in your assessment? (0.0 = Not confident, 1.0 = Very confident)"
+            )
+
+        comments = st.text_area(
+            "Additional Comments (Optional)",
+            placeholder="Provide additional context, observations, or reasoning for your assessment...",
+            help="Include any additional context that might help improve the model's understanding"
+        )
+
+        # Submit button with validation
+        if st.button("Submit Feedback", type="primary"):
+            if selected_alert:
+                ok = submit_real_feedback(
+                    alert_id=selected_alert,
+                    is_true_positive=(is_true_positive == "Yes"),
+                    confidence=confidence,
+                    comments=comments,
+                )
+                if ok:
+                    st.session_state.feedback_submitted = True
+                    st.success(f"Feedback submitted for alert {selected_alert}")
+                    st.info("Feedback is stored in BigQuery table `soc_data.feedback`.")
+                else:
+                    st.error("Feedback submission failed. See error above.")
+            else:
+                st.error("Please select an alert to provide feedback on")
+
+        # Store selected alert in session state for chat context
+        if 'selected_alert_data' in locals() and selected_alert_data is not None:
+            st.session_state.current_alert_context = {
+                'alert_id': str(selected_alert_data.get('alert_id', 'N/A')),
+                'classification': str(selected_alert_data.get('classification', 'N/A')),
+                'severity': str(selected_alert_data.get('severity', 'N/A')),
+                'confidence_score': float(selected_alert_data.get('confidence_score', 0)),
+                'timestamp': str(selected_alert_data.get('timestamp', 'N/A'))
+            }
+
+        # AI Assistant Chat Section
+        st.markdown("---")
+        st.subheader("AI Assistant Chat")
+
+        # Show LLM status
+        llm_available = st.session_state.gemini_model is not None or GENAI_AVAILABLE
+        if llm_available:
+            st.success("**Powered by Google Gemini Flash 2.5** - Real-time threat intelligence")
+        else:
+            st.info("**Enhanced AI Analysis** - Using advanced predefined responses")
+
+        # Display chat history
+        if st.session_state.chat_history:
+            st.markdown("### Conversation History")
+            for i, msg in enumerate(st.session_state.chat_history):
+                if msg['role'] == 'user':
+                    st.markdown(f"**You:** {msg['content']}")
+                else:
+                    st.markdown(f"**AI Assistant:**\n\n{msg['content']}")
+                st.markdown("---")
+
+        # Chat input
+        user_input = st.text_input(
+            "Ask the AI assistant about this alert:",
+            placeholder="e.g., 'How should I investigate this alert?' or 'What's the threat level?'",
+            key="chat_input"
+        )
+
+        col_send, col_clear = st.columns([4, 1])
+        with col_send:
+            if st.button("Send Message", type="primary", use_container_width=True):
+                if user_input.strip():
+                    with st.spinner("Generating response..."):
+                        # Add user message to history
                         st.session_state.chat_history.append({
                             'role': 'user',
-                            'content': "How should I investigate this alert?"
+                            'content': user_input
                         })
+
+                        # Get AI response with stored context
                         alert_context = st.session_state.get('current_alert_context', None)
-                        response = generate_chat_response("How should I investigate this alert?", alert_context)
+                        response = generate_chat_response(user_input, alert_context)
+
+                        # Add AI response to history
                         st.session_state.chat_history.append({
                             'role': 'assistant',
                             'content': response
                         })
+
+                    # Show success message
+                    st.success("Response generated!")
+                    # Force rerun to display new messages
                     st.rerun()
-            
-            with quick_q_col2:
-                if st.button("🛡️ Threat level?", use_container_width=True):
-                    with st.spinner("🤖 Generating response..."):
-                        st.session_state.chat_history.append({
-                            'role': 'user',
-                            'content': "What's the threat level?"
-                        })
-                        alert_context = st.session_state.get('current_alert_context', None)
-                        response = generate_chat_response("What's the threat level?", alert_context)
-                        st.session_state.chat_history.append({
-                            'role': 'assistant',
-                            'content': response
-                        })
-                    st.rerun()
-            
-            with quick_q_col3:
-                if st.button("📋 MITRE TTPs?", use_container_width=True):
-                    with st.spinner("🤖 Generating response..."):
-                        st.session_state.chat_history.append({
-                            'role': 'user',
-                            'content': "What MITRE ATT&CK TTPs apply?"
-                        })
-                        alert_context = st.session_state.get('current_alert_context', None)
-                        response = generate_chat_response("What MITRE ATT&CK TTPs apply?", alert_context)
-                        st.session_state.chat_history.append({
-                            'role': 'assistant',
-                            'content': response
-                        })
-                    st.rerun()
-    
+                else:
+                    st.warning("Please enter a message first")
+
+        with col_clear:
+            if st.button("Clear Chat", use_container_width=True):
+                st.session_state.chat_history = []
+                st.rerun()
+
+        # Quick action buttons
+        st.markdown("**Quick Questions:**")
+        quick_q_col1, quick_q_col2, quick_q_col3 = st.columns(3)
+
+        with quick_q_col1:
+            if st.button("How to investigate?", use_container_width=True):
+                with st.spinner("Generating response..."):
+                    st.session_state.chat_history.append({
+                        'role': 'user',
+                        'content': "How should I investigate this alert?"
+                    })
+                    alert_context = st.session_state.get('current_alert_context', None)
+                    response = generate_chat_response("How should I investigate this alert?", alert_context)
+                    st.session_state.chat_history.append({
+                        'role': 'assistant',
+                        'content': response
+                    })
+                st.rerun()
+
+        with quick_q_col2:
+            if st.button("Threat level?", use_container_width=True):
+                with st.spinner("Generating response..."):
+                    st.session_state.chat_history.append({
+                        'role': 'user',
+                        'content': "What's the threat level?"
+                    })
+                    alert_context = st.session_state.get('current_alert_context', None)
+                    response = generate_chat_response("What's the threat level?", alert_context)
+                    st.session_state.chat_history.append({
+                        'role': 'assistant',
+                        'content': response
+                    })
+                st.rerun()
+
+        with quick_q_col3:
+            if st.button("MITRE TTPs?", use_container_width=True):
+                with st.spinner("Generating response..."):
+                    st.session_state.chat_history.append({
+                        'role': 'user',
+                        'content': "What MITRE ATT&CK TTPs apply?"
+                    })
+                    alert_context = st.session_state.get('current_alert_context', None)
+                    response = generate_chat_response("What MITRE ATT&CK TTPs apply?", alert_context)
+                    st.session_state.chat_history.append({
+                        'role': 'assistant',
+                        'content': response
+                    })
+                st.rerun()
+
     else:
         st.warning("No alerts available for review")
 

@@ -1,0 +1,264 @@
+version: "3.8"
+
+# Production Docker Compose for GATRA SOC Platform
+# This configuration uses production-hardened services with:
+# - Secret management (GCP Secret Manager or env vars)
+# - Service-to-service authentication
+# - Rate limiting (Redis-backed for multi-instance)
+# - Circuit breakers and retry logic
+# - Structured JSON logging
+# - Health checks for Kubernetes/orchestration
+# - Graceful shutdown support
+
+services:
+  # Redis for distributed rate limiting and circuit breaker state
+  redis:
+    image: redis:7-alpine
+    container_name: gatra-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - soc-network
+
+  # MSSP Platform: Main orchestration service (Production)
+  mssp-platform:
+    build:
+      context: .
+      dockerfile: Dockerfile.gatra
+    container_name: gatra-mssp-production
+    command: python mssp_platform_server_production.py
+    environment:
+      # Core Configuration
+      - PORT=8080
+      - ENVIRONMENT=production
+      - SERVICE_NAME=mssp-platform
+
+      # Security
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVICE_API_KEY=${SERVICE_API_KEY}
+      - GCP_SECRET_MANAGER_PROJECT=${GCP_PROJECT_ID:-}
+
+      # Tenant Configuration
+      - MULTITENANT_CONFIG_PATH=/app/config/gatra_multitenant_config.json
+
+      # Service URLs
+      - TAA_SERVICE_URL=http://taa-service:8082
+      - CRA_SERVICE_URL=http://cra-service:8083
+      - LEARNING_SERVICE_URL=http://learning-service:8084
+
+      # Rate Limiting
+      - REDIS_URL=redis://redis:6379
+
+      # Observability
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+
+      # Resilience
+      - CIRCUIT_BREAKER_FAILURE_THRESHOLD=5
+      - CIRCUIT_BREAKER_RECOVERY_TIMEOUT=30
+      - REQUEST_TIMEOUT_SECONDS=30
+      - SHUTDOWN_GRACE_PERIOD=30
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/app/logs
+      - ./Service Account BigQuery:/app/Service Account BigQuery:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - soc-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # TAA: Triage & Analysis Service (Production)
+  taa-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.gatra
+    container_name: gatra-taa-production
+    command: python taa_service_production.py
+    environment:
+      - PORT=8082
+      - ENVIRONMENT=production
+      - SERVICE_NAME=taa-service
+
+      # Security
+      - SERVICE_API_KEY=${SERVICE_API_KEY}
+
+      # Rate Limiting
+      - REDIS_URL=redis://redis:6379
+
+      # Observability
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+
+      # BigQuery
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/Service Account BigQuery/sa-gatra-bigquery.json
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./logs:/app/logs
+      - ./Service Account BigQuery:/app/Service Account BigQuery:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - soc-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # CRA: Containment & Response Service (Production)
+  cra-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.gatra
+    container_name: gatra-cra-production
+    command: python cra_service_production.py
+    environment:
+      - PORT=8083
+      - ENVIRONMENT=production
+      - SERVICE_NAME=cra-service
+
+      # Security
+      - SERVICE_API_KEY=${SERVICE_API_KEY}
+
+      # Rate Limiting
+      - REDIS_URL=redis://redis:6379
+
+      # Observability
+      - LOG_LEVEL=INFO
+      - LOG_FORMAT=json
+
+      # Approval Workflow
+      - HIGH_RISK_APPROVAL_REQUIRED=true
+      - APPROVAL_WEBHOOK_URL=${APPROVAL_WEBHOOK_URL:-}
+
+      # BigQuery
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/Service Account BigQuery/sa-gatra-bigquery.json
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./logs:/app/logs
+      - ./Service Account BigQuery:/app/Service Account BigQuery:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - soc-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Learning Service: Reinforcement Learning Feedback Loop
+  learning-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.gatra
+    container_name: gatra-learning-production
+    command: python soc_learning_service.py
+    environment:
+      - PORT=8084
+      - ENVIRONMENT=production
+      - SERVICE_NAME=learning-service
+      - LOG_LEVEL=INFO
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/Service Account BigQuery/sa-gatra-bigquery.json
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./logs:/app/logs
+      - ./Service Account BigQuery:/app/Service Account BigQuery:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - soc-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Dashboard for SOC visualization (optional in production)
+  gatra-dashboard:
+    image: python:3.11-slim
+    container_name: gatra-dashboard-production
+    working_dir: /app
+    profiles:
+      - dashboard  # Only starts with --profile dashboard
+    volumes:
+      - ./:/app:ro
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_ENABLE_CORS=false
+      - API_BASE_URL=http://mssp-platform:8080
+    ports:
+      - "8501:8501"
+    command: bash -c "pip install streamlit pandas matplotlib seaborn pytz && python3 -m streamlit run enterprise_gatra_dashboard.py --server.address 0.0.0.0"
+    depends_on:
+      - mssp-platform
+    networks:
+      - soc-network
+
+networks:
+  soc-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  redis-data:
+    driver: local

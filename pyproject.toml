@@ -1,0 +1,171 @@
+# =============================================================================
+# AI-Driven SOC Platform - Project Configuration
+# =============================================================================
+
+[project]
+name = "ai-driven-soc"
+version = "1.0.0"
+description = "LangGraph-powered Anomaly Detection Agent (ADA) and Triage & Analysis Agent (TAA) for autonomous SOC operations"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "Proprietary"}
+authors = [
+    {name = "GATRA Team"}
+]
+keywords = ["soc", "security", "anomaly-detection", "langgraph", "ai"]
+
+[project.urls]
+Repository = "https://github.com/ghifiardi/ai-driven-soc"
+
+# =============================================================================
+# Build System
+# =============================================================================
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# =============================================================================
+# Tool Configurations
+# =============================================================================
+
+# Black - Code Formatter
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | node_modules
+)/
+'''
+
+# isort - Import Sorter
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+skip = [".git", ".venv", "venv", "node_modules", "__pycache__"]
+known_first_party = ["production", "multi_tenant_manager", "bigquery_client"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
+# Ruff - Fast Linter
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "venv",
+    "__pycache__",
+    "node_modules",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "S",      # flake8-bandit (security)
+    "T20",    # flake8-print
+    "SIM",    # flake8-simplify
+]
+ignore = [
+    "E501",   # line too long (handled by black)
+    "B008",   # do not perform function calls in argument defaults
+    "S101",   # use of assert detected (ok in tests)
+    "S104",   # possible binding to all interfaces
+    "S105",   # hardcoded password - we handle this via env vars
+    "S106",   # hardcoded password - we handle this via env vars
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S105", "S106"]
+"test_*.py" = ["S101", "S105", "S106"]
+
+# Bandit - Security Linter
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv", "node_modules"]
+skips = ["B101", "B104"]  # Skip assert and binding to 0.0.0.0 warnings
+
+# pytest - Testing
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "-ra",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "unit: Unit tests (fast, no external dependencies)",
+    "integration: Integration tests (may require external services)",
+    "slow: Slow tests (> 1 second)",
+    "security: Security-related tests",
+]
+
+# Coverage
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*/tests/*",
+    "*test*.py",
+    "venv/*",
+    ".venv/*",
+    "setup.py",
+    "conftest.py",
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
+]
+fail_under = 50
+show_missing = true
+
+# MyPy - Type Checking
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = [
+    "venv",
+    ".venv",
+    "tests",
+    "build",
+    "dist",
+]

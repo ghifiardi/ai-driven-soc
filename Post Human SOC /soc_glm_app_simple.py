@@ -363,7 +363,22 @@ class SOCOperationsPlatform:
 
 # Flask Application
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'soc_glm_secret_key'
+
+# Secret key - MUST be provided via environment variable in production
+_flask_secret = os.environ.get('FLASK_SECRET_KEY') or os.environ.get('SECRET_KEY')
+if not _flask_secret:
+    if os.environ.get('FLASK_ENV') == 'production' or os.environ.get('ENVIRONMENT') == 'production':
+        raise RuntimeError(
+            "FLASK_SECRET_KEY environment variable is required in production. "
+            "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+        )
+    # Development only: generate ephemeral secret
+    import secrets as _secrets
+    _flask_secret = _secrets.token_hex(32)
+    import warnings
+    warnings.warn("FLASK_SECRET_KEY not set - using ephemeral secret for development.", RuntimeWarning)
+
+app.config['SECRET_KEY'] = _flask_secret
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize SOC Platform

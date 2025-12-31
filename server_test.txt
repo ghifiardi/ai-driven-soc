@@ -1,0 +1,38 @@
+/Users/raditio.ghifiardigmail.com/Downloads/ai-driven-soc.backup/venv/lib/python3.14/site-packages/langchain_core/_api/deprecation.py:26: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+  from pydantic.v1.fields import FieldInfo as FieldInfoV1
+2025-12-21 16:29:00,411 - INFO - Loaded tenant configuration from config/gatra_multitenant_config.json
+2025-12-21 16:29:00,890 - INFO - Starting MSSP Platform Server on 0.0.0.0:8081
+INFO:     Started server process [18045]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8081 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55463 - "POST /api/v1/auth/token HTTP/1.1" 401 Unauthorized
+/Users/raditio.ghifiardigmail.com/Downloads/ai-driven-soc.backup/mssp_platform_server.py:105: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  expire = datetime.utcnow() + expires_delta
+INFO:     127.0.0.1:55485 - "POST /api/v1/auth/token HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55486 - "POST /api/v1/events HTTP/1.1" 200 OK
+2025-12-21 16:29:30,362 - INFO - GATRA analyzing 5 events for tenant tenant_001
+2025-12-21 16:29:30,378 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Unexpected new connection from unknown to unknown', 'Autoencoder reconstruction error above threshold (Score: 1.00)']
+2025-12-21 16:29:30,378 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Circular dependency detected between unknown and unknown', 'Autoencoder reconstruction error above threshold (Score: 1.00)', 'Potential root causes: alert']
+2025-12-21 16:29:30,378 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Circular dependency detected between unknown and unknown', 'Autoencoder reconstruction error above threshold (Score: 1.00)', 'Potential root causes: alert, alert']
+2025-12-21 16:29:30,378 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Circular dependency detected between unknown and unknown', 'Autoencoder reconstruction error above threshold (Score: 1.00)', 'Potential root causes: alert, alert, alert']
+2025-12-21 16:29:30,379 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Circular dependency detected between unknown and unknown', 'Autoencoder reconstruction error above threshold (Score: 1.00)', 'Potential root causes: alert, alert, alert, alert']
+2025-12-21 16:29:30,379 - INFO - GATRA found 5 anomalies for tenant tenant_001
+INFO:     127.0.0.1:55886 - "POST /api/v1/auth/token HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55887 - "POST /api/v1/events HTTP/1.1" 200 OK
+2025-12-21 16:36:26,155 - INFO - GATRA analyzing 1 events for tenant tenant_001
+2025-12-21 16:36:26,156 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Circular dependency detected between unknown and unknown', 'Autoencoder reconstruction error above threshold (Score: 1.00)']
+2025-12-21 16:36:26,156 - INFO - GATRA found 1 anomalies for tenant tenant_001
+INFO:     127.0.0.1:55888 - "POST /api/v1/events HTTP/1.1" 200 OK
+2025-12-21 16:36:26,157 - INFO - GATRA analyzing 1 events for tenant tenant_001
+2025-12-21 16:36:26,157 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Unexpected new connection from 10.0.0.1 to unknown', 'Autoencoder reconstruction error above threshold (Score: 1.00)', 'Potential root causes: alert']
+2025-12-21 16:36:26,157 - INFO - GATRA found 1 anomalies for tenant tenant_001
+INFO:     127.0.0.1:55889 - "POST /api/v1/auth/token HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55890 - "POST /api/v1/events HTTP/1.1" 200 OK
+2025-12-21 16:36:32,897 - INFO - GATRA analyzing 1 events for tenant tenant_001
+2025-12-21 16:36:32,897 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Circular dependency detected between unknown and unknown', 'Autoencoder reconstruction error above threshold (Score: 1.00)', 'Potential root causes: alert, alert']
+2025-12-21 16:36:32,897 - INFO - GATRA found 1 anomalies for tenant tenant_001
+INFO:     127.0.0.1:55891 - "POST /api/v1/events HTTP/1.1" 200 OK
+2025-12-21 16:36:32,898 - INFO - GATRA analyzing 1 events for tenant tenant_001
+2025-12-21 16:36:32,898 - WARNING - ALERT: GATRA detected anomaly for tenant_001: ['Autoencoder reconstruction error above threshold (Score: 1.00)', 'Potential root causes: alert, alert, alert']
+2025-12-21 16:36:32,898 - INFO - GATRA found 1 anomalies for tenant tenant_001

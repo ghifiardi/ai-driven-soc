@@ -349,7 +349,7 @@ class EnhancedClassificationEngine:
         score = 0.0
         
         # Check protocol anomalies
-        protocol = alert_data.get('protocol', '').lower()
+        protocol = (alert_data.get('protocol') or '').lower()
         if protocol in ['udp', 'icmp'] and alert_data.get('attack_category') == 'Exploits':
             score += 1.0  # Suspicious protocol for exploits
         
@@ -441,6 +441,8 @@ class EnhancedClassificationEngine:
                 'threat_score': 0.0,
                 'is_anomaly': False,
                 'error': str(e),
+                'reasoning': [f"Classification error: {str(e)}"],
+                'threat_breakdown': {},
                 'enhanced_classification': False
             }
     

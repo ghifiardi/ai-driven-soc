@@ -1,8 +1,8 @@
 import sys
 
 # The main execution block with polling logic
-main_block = """\n
-if __name__ == \"__main__\":
+main_block = '''
+if __name__ == "__main__":
     import argparse
     import time
     from google.cloud import bigquery
@@ -14,7 +14,7 @@ if __name__ == \"__main__\":
     # This assumes the ContinuousLearningAgent class is defined in the same file
     agent = ContinuousLearningAgent(config_path=args.config)
 
-    logger.info(\"Starting agent with BigQuery polling for feedback.\")
+    logger.info("Starting agent with BigQuery polling for feedback.")
 
     while True:
         try:
@@ -27,20 +27,20 @@ if __name__ == \"__main__\":
                  agent.poll_for_feedback()
 
         except Exception as e:
-            logger.error(f\"An error occurred in the main loop: {e}\", exc_info=True)
-        
-        logger.info(\"Cycle complete. Waiting for 60 seconds...\")
+            logger.error(f"An error occurred in the main loop: {e}", exc_info=True)
+
+        logger.info("Cycle complete. Waiting for 60 seconds...")
         time.sleep(60)
-"""
+'''
 
 def append_main_to_script(file_path):
     with open(file_path, 'a') as file:
         file.write(main_block)
-    print(f\"Successfully appended main execution block to {file_path}\")
+    print(f"Successfully appended main execution block to {file_path}")
 
-if __name__ == \"__main__\":
+if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print(\"Usage: python append_main.py <path_to_script>\")
+        print("Usage: python append_main.py <path_to_script>")
         sys.exit(1)
-    
+
     append_main_to_script(sys.argv[1])

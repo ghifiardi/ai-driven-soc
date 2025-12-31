@@ -32,7 +32,10 @@ SOC_HOST=0.0.0.0
 SOC_PORT=5000
 
 # Security Configuration
-SECRET_KEY=soc_glm_secret_key_2024
+# IMPORTANT: Generate a secure secret key for production:
+# python -c "import secrets; print(secrets.token_hex(32))"
+SECRET_KEY=CHANGE_ME_GENERATE_SECURE_KEY
+FLASK_SECRET_KEY=CHANGE_ME_GENERATE_SECURE_KEY
 """
     
     env_path = Path(".env")

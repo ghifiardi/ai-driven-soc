@@ -1,6 +1,6 @@
 {
   "defaults": {
-    "project_id": "chronicle-dev-2be9",
+    "project_id": "gatra-481606",
     "location": "us-central1",
     "dataset_template": "gatra_{tenant_id}",
     "results_dataset_template": "gatra_{tenant_id}_results",
@@ -27,7 +27,8 @@
         "ingest_eps": 10000,
         "alerts_per_min": 500
       },
-      "service_level": "professional"
+      "service_level": "professional",
+      "api_key": "soc_secret_key_001"
     },
     {
       "tenant_id": "tenant_002",
@@ -49,9 +50,9 @@
         "ingest_eps": 10000,
         "alerts_per_min": 500
       },
-      "service_level": "professional"
+      "service_level": "professional",
+      "api_key": "soc_secret_key_002"
     }
   ],
   "default_tenant_id": "tenant_001"
 }
-

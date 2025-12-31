@@ -1,0 +1,55 @@
+# =============================================================================
+# AI-Driven SOC Platform - Development Dependencies
+# =============================================================================
+# Install with: pip install -r requirements-dev.txt
+
+# Include production dependencies
+-r requirements.txt
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-xdist==3.5.0
+coverage==7.4.0
+hypothesis==6.92.2
+freezegun==1.4.0
+
+# Mocking & Fixtures
+factory-boy==3.3.0
+faker==22.0.0
+responses==0.24.1
+aioresponses==0.7.6
+
+# Linting & Formatting
+ruff==0.1.11
+black==23.12.1
+isort==5.13.2
+mypy==1.8.0
+
+# Type Stubs
+types-redis==4.6.0.11
+types-requests==2.31.0.10
+pandas-stubs==2.1.4.231218
+
+# Security Scanning
+bandit==1.7.6
+safety==2.3.5
+pip-audit==2.6.1
+
+# Documentation
+mkdocs==1.5.3
+mkdocs-material==9.5.3
+mkdocstrings==0.24.0
+mkdocstrings-python==1.8.0
+
+# Pre-commit Hooks
+pre-commit==3.6.0
+
+# Debugging
+ipdb==0.13.13
+rich==13.7.0
+
+# Performance Testing
+locust==2.20.1

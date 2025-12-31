@@ -19,8 +19,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Constants
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyCB1jWcqRrHUueOUxLA2kt0gJUuY7ng8Ac')
+# Constants - API keys must be provided via environment variables
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+if not GEMINI_API_KEY:
+    import logging
+    logging.warning("GEMINI_API_KEY not set. Gemini features will be disabled.")
 GEMINI_AVAILABLE = bool(GEMINI_API_KEY)
 
 def get_bigquery_client():

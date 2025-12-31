@@ -17,8 +17,18 @@ import logging
 import requests
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
-from google.cloud import pubsub_v1, firestore
-import googleapiclient.discovery
+try:
+    from google.cloud import pubsub_v1, firestore
+    import googleapiclient.discovery
+except ImportError:
+    pubsub_v1 = None
+    firestore = None
+    googleapiclient = None
+
+try:
+    from jira import JIRA
+except ImportError:
+    JIRA = None
 from enum import Enum
 
 # Configure logging
@@ -45,23 +55,29 @@ class ContainmentResponseAgent:
         """
         self.config = self._load_config(config_path)
         
-        # Initialize publishers and subscribers
-        self.publisher = pubsub_v1.PublisherClient()
-        self.subscriber = pubsub_v1.SubscriberClient()
-        
-        # Topic for reporting
-        self.reporting_topic_path = self.publisher.topic_path(
-            self.config["project_id"], 
-            self.config["reporting_topic"]
-        )
-        
-        # Firestore for state management
-        self.db = firestore.Client(project=self.config["project_id"])
+        if pubsub_v1 and firestore:
+            # Initialize publishers and subscribers
+            self.publisher = pubsub_v1.PublisherClient()
+            self.subscriber = pubsub_v1.SubscriberClient()
+            
+            # Topic for reporting
+            self.reporting_topic_path = self.publisher.topic_path(
+                self.config["project_id"], 
+                self.config["reporting_topic"]
+            )
+            
+            # Firestore for state management
+            self.db = firestore.Client(project=self.config["project_id"])
+        else:
+            self.publisher = None
+            self.subscriber = None
+            self.db = None
+            logger.warning("Cloud services (Pub/Sub, Firestore) not available.")
         
         # Initialize API clients
         self._init_api_clients()
         
-        logger.info("Containment and Response Agent initialized successfully")
+        logger.info("Containment and Response Agent initialized (Lite/Standard)")
     
     def _load_config(self, config_path: str) -> Dict:
         """Load the agent configuration from a JSON file
@@ -125,11 +141,11 @@ class ContainmentResponseAgent:
         """Initialize API clients for external systems"""
         # Initialize firewall API client based on type
         firewall_type = self.config["firewall_api"]["type"]
-        if firewall_type == "gcp":
+        if firewall_type == "gcp" and googleapiclient:
             self.firewall_client = googleapiclient.discovery.build('compute', 'v1')
         else:
             self.firewall_client = None
-            logger.warning(f"Firewall type {firewall_type} not implemented yet")
+            logger.warning(f"Firewall type {firewall_type} not implemented or missing library")
         
         # Initialize ticket system client
         ticket_type = self.config["ticket_system"]["type"]

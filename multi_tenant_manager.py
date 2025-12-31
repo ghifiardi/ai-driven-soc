@@ -60,6 +60,7 @@ class TenantConfig:
     pubsub_topics: TenantPubSubTopics
     rate_limits: TenantRateLimits
     service_level: str
+    api_key: Optional[str] = None
     firewall_config: Optional[FirewallConfig] = None
 
 
@@ -219,6 +220,7 @@ class MultiTenantManager:
                     alerts_per_min=tenant_payload["rate_limits"]["alerts_per_min"],
                 ),
                 service_level=tenant_payload.get("service_level", "starter"),
+                api_key=tenant_payload.get("api_key"),
                 firewall_config=FirewallConfig(**tenant_payload["firewall_config"]) if tenant_payload.get("firewall_config") else None,
             )
             tenants[tenant.tenant_id] = tenant
@@ -304,6 +306,7 @@ class MultiTenantManager:
                     "alerts_per_min": tenant.rate_limits.alerts_per_min
                 },
                 "service_level": tenant.service_level,
+                "api_key": tenant.api_key,
                 "firewall_config": asdict(tenant.firewall_config) if tenant.firewall_config else None
             }
             tenants_list.append(tenant_dict)

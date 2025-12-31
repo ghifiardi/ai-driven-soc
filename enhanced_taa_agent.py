@@ -118,9 +118,9 @@ class EnhancedTAAgent:
                 classification=classification_result['classification'],
                 confidence=classification_result['confidence'],
                 threat_score=classification_result['threat_score'],
-                is_anomaly=classification_result['is_anomaly'],
-                reasoning=classification_result['reasoning'],
-                threat_breakdown=classification_result['threat_breakdown'],
+                is_anomaly=classification_result.get('is_anomaly', False),
+                reasoning=classification_result.get('reasoning', []),
+                threat_breakdown=classification_result.get('threat_breakdown', {}),
                 processing_time=processing_time
             )
             

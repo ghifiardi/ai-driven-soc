@@ -1,0 +1,253 @@
+# =============================================================================
+# Continuous Deployment Workflow
+# =============================================================================
+# Deploys to GCP when changes are merged to main branch.
+
+name: CD
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PYTHON_VERSION: "3.11"
+  GCP_REGION: us-central1
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  ARTIFACT_REGISTRY: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/gatra-soc
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Build and Push Docker Image
+  # ---------------------------------------------------------------------------
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+      image_digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configure Docker for GCP Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.ARTIFACT_REGISTRY }}/mssp-platform
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=sha-
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.gatra
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            GIT_SHA=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+
+  # ---------------------------------------------------------------------------
+  # Deploy to Staging
+  # ---------------------------------------------------------------------------
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.gatra-soc.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Deploy to Cloud Run (Staging)
+        run: |
+          gcloud run deploy gatra-soc-staging \
+            --image=${{ env.ARTIFACT_REGISTRY }}/mssp-platform:sha-${{ github.sha }} \
+            --region=${{ env.GCP_REGION }} \
+            --platform=managed \
+            --allow-unauthenticated=false \
+            --set-env-vars="ENVIRONMENT=staging" \
+            --set-secrets="JWT_SECRET=gatra-jwt-secret:latest" \
+            --set-secrets="SERVICE_API_KEY=gatra-service-api-key:latest" \
+            --min-instances=1 \
+            --max-instances=5 \
+            --memory=2Gi \
+            --cpu=2 \
+            --timeout=300 \
+            --concurrency=80
+
+      - name: Run smoke tests
+        run: |
+          # Get the service URL
+          SERVICE_URL=$(gcloud run services describe gatra-soc-staging --region=${{ env.GCP_REGION }} --format='value(status.url)')
+
+          # Health check
+          echo "Running health check on $SERVICE_URL"
+          curl -f "$SERVICE_URL/health/live" || exit 1
+          curl -f "$SERVICE_URL/health/ready" || exit 1
+
+          echo "Staging deployment successful!"
+
+  # ---------------------------------------------------------------------------
+  # Deploy to Production
+  # ---------------------------------------------------------------------------
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: startsWith(github.ref, 'refs/tags/v') || github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://gatra-soc.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID_PROD }}
+
+      - name: Deploy to Cloud Run (Production)
+        run: |
+          gcloud run deploy gatra-soc-production \
+            --image=${{ env.ARTIFACT_REGISTRY }}/mssp-platform:sha-${{ github.sha }} \
+            --region=${{ env.GCP_REGION }} \
+            --platform=managed \
+            --allow-unauthenticated=false \
+            --set-env-vars="ENVIRONMENT=production" \
+            --set-secrets="JWT_SECRET=gatra-jwt-secret-prod:latest" \
+            --set-secrets="SERVICE_API_KEY=gatra-service-api-key-prod:latest" \
+            --min-instances=2 \
+            --max-instances=20 \
+            --memory=4Gi \
+            --cpu=4 \
+            --timeout=300 \
+            --concurrency=100 \
+            --no-traffic
+
+      - name: Gradual traffic migration
+        run: |
+          # Migrate 10% traffic first
+          gcloud run services update-traffic gatra-soc-production \
+            --region=${{ env.GCP_REGION }} \
+            --to-latest=10
+
+          echo "Waiting 60 seconds for initial traffic validation..."
+          sleep 60
+
+          # Health check
+          SERVICE_URL=$(gcloud run services describe gatra-soc-production --region=${{ env.GCP_REGION }} --format='value(status.url)')
+          curl -f "$SERVICE_URL/health/live" || exit 1
+
+          # Migrate remaining traffic
+          gcloud run services update-traffic gatra-soc-production \
+            --region=${{ env.GCP_REGION }} \
+            --to-latest=100
+
+          echo "Production deployment complete!"
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          body: |
+            ## Deployment Information
+            - **Image**: `${{ env.ARTIFACT_REGISTRY }}/mssp-platform:sha-${{ github.sha }}`
+            - **Deployed to**: Production
+            - **Region**: ${{ env.GCP_REGION }}
+
+  # ---------------------------------------------------------------------------
+  # Rollback (Manual Trigger)
+  # ---------------------------------------------------------------------------
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && failure()
+    needs: [deploy-production]
+    environment:
+      name: production
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
+
+      - name: Rollback to previous revision
+        run: |
+          echo "Rolling back to previous revision..."
+
+          # Get the previous revision
+          PREV_REVISION=$(gcloud run revisions list \
+            --service=gatra-soc-production \
+            --region=${{ env.GCP_REGION }} \
+            --format='value(name)' \
+            --limit=2 | tail -1)
+
+          # Route all traffic to previous revision
+          gcloud run services update-traffic gatra-soc-production \
+            --region=${{ env.GCP_REGION }} \
+            --to-revisions=$PREV_REVISION=100
+
+          echo "Rollback complete to revision: $PREV_REVISION"
+
+      - name: Notify on rollback
+        run: |
+          echo "::warning::Production rollback executed due to deployment failure"
