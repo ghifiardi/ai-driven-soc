@@ -3,27 +3,23 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    git \
-    software-properties-common \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        git \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies with increased timeout
-# Install torch separately with CPU-only version for smaller image
-RUN pip install --no-cache-dir --timeout=300 \
-    torch==2.1.2+cpu \
-    torchvision==0.16.2+cpu \
-    -f https://download.pytorch.org/whl/cpu/torch_stable.html || \
-    pip install --no-cache-dir torch torchvision
+# Install PyTorch CPU-only version first (smaller and faster)
+RUN pip install --no-cache-dir \
+    torch --index-url https://download.pytorch.org/whl/cpu
 
 # Install remaining requirements
-RUN pip install --no-cache-dir --timeout=300 -r requirements.txt || \
-    pip install --no-cache-dir -r requirements.txt --ignore-installed
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
 COPY . .

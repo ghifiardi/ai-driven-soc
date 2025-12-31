@@ -227,9 +227,9 @@ jobs:
           context: .
           file: ./Dockerfile.gatra
           push: false
+          load: true
           tags: gatra-soc:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
