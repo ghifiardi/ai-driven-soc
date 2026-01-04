@@ -1,0 +1,193 @@
+{
+  "tenant_id": "default",
+  "gcp_project_id": "your-gcp-project-id",
+  "gcs": {
+    "rules_bucket": "valhalla-threat-intel",
+    "yara_rules_path": "yara/",
+    "sigma_rules_path": "sigma/",
+    "ioc_cache_path": "iocs/",
+    "compiled_rules_path": "compiled/"
+  },
+  "pubsub_topics": {
+    "rule_updates": "valhalla-rule-updates",
+    "ioc_updates": "valhalla-ioc-updates",
+    "feed_sync_status": "valhalla-feed-status"
+  },
+  "feeds": {
+    "valhalla_public": {
+      "enabled": false,
+      "api_key_required": true,
+      "url": "https://valhalla.nextron-systems.com/api/v1/",
+      "update_interval_hours": 24,
+      "rule_types": ["yara"]
+    },
+    "threatfox": {
+      "enabled": true,
+      "url": "https://threatfox-api.abuse.ch/api/v1/",
+      "update_interval_hours": 1,
+      "types": ["ip", "domain", "hash", "url"],
+      "quality_threshold": 0.5,
+      "max_age_days": 30
+    },
+    "malwarebazaar": {
+      "enabled": true,
+      "url": "https://mb-api.abuse.ch/api/v1/",
+      "update_interval_hours": 6,
+      "types": ["hash"],
+      "max_samples_per_update": 1000,
+      "file_types": ["exe", "dll", "pdf", "doc", "xls", "jar", "apk"]
+    },
+    "emergingthreats": {
+      "enabled": true,
+      "url": "https://rules.emergingthreats.net/",
+      "update_interval_hours": 24,
+      "types": ["yara", "snort", "suricata"],
+      "require_subscription": false
+    },
+    "alienvault_otx": {
+      "enabled": false,
+      "api_key_required": true,
+      "url": "https://otx.alienvault.com/api/v1/",
+      "update_interval_hours": 6,
+      "types": ["ip", "domain", "hash", "url"],
+      "subscribed_pulses": []
+    },
+    "misp": {
+      "enabled": false,
+      "url": "https://your-misp-instance.com/",
+      "api_key_required": true,
+      "update_interval_hours": 1,
+      "types": ["ip", "domain", "hash", "url", "yara"],
+      "event_filters": {
+        "published": true,
+        "threat_level": [1, 2, 3]
+      }
+    },
+    "virustotal": {
+      "enabled": false,
+      "api_key_required": true,
+      "url": "https://www.virustotal.com/api/v3/",
+      "hunting_rulesets": [],
+      "livehunt_enabled": false
+    }
+  },
+  "yara": {
+    "auto_compile": true,
+    "validation": true,
+    "min_quality": "medium",
+    "quality_levels": {
+      "verified": 1.0,
+      "high": 0.8,
+      "medium": 0.6,
+      "experimental": 0.4,
+      "deprecated": 0.0
+    },
+    "categories": [
+      "apt",
+      "ransomware",
+      "trojan",
+      "malware",
+      "exploit",
+      "webshell",
+      "backdoor",
+      "rootkit",
+      "cryptominer",
+      "pua",
+      "hacktool",
+      "generic"
+    ],
+    "custom_rules_path": "/opt/valhalla/custom_yara_rules",
+    "import_external_repos": true,
+    "external_repos": [
+      {
+        "name": "YARA-Rules",
+        "url": "https://github.com/Yara-Rules/rules.git",
+        "branch": "master",
+        "enabled": true
+      },
+      {
+        "name": "reversinglabs-yara-rules",
+        "url": "https://github.com/reversinglabs/reversinglabs-yara-rules.git",
+        "branch": "develop",
+        "enabled": false
+      }
+    ]
+  },
+  "sigma": {
+    "validation": true,
+    "backends": ["splunk", "elk", "qradar", "sentinel"],
+    "log_sources": [
+      "windows",
+      "linux",
+      "macos",
+      "network",
+      "cloud",
+      "application"
+    ],
+    "import_sigma_hq": true,
+    "sigma_hq_url": "https://github.com/SigmaHQ/sigma.git",
+    "custom_rules_path": "/opt/valhalla/custom_sigma_rules"
+  },
+  "ioc_management": {
+    "deduplication": true,
+    "expiration_enabled": true,
+    "default_ttl_days": 90,
+    "confidence_decay": {
+      "enabled": true,
+      "decay_rate_per_day": 0.01
+    },
+    "whitelisting": {
+      "enabled": true,
+      "whitelist_path": "/opt/valhalla/whitelist.json",
+      "auto_whitelist_fp": true
+    },
+    "enrichment": {
+      "enabled": true,
+      "sources": ["virustotal", "shodan", "censys"],
+      "enrich_on_add": false,
+      "enrich_interval_hours": 168
+    }
+  },
+  "quality_assurance": {
+    "enable_rule_testing": true,
+    "test_against_samples": true,
+    "benign_samples_path": "/opt/valhalla/test_samples/benign/",
+    "malicious_samples_path": "/opt/valhalla/test_samples/malicious/",
+    "false_positive_tracking": true,
+    "performance_benchmarking": true,
+    "min_detection_rate": 0.7,
+    "max_false_positive_rate": 0.1
+  },
+  "distribution": {
+    "push_to_thor_agents": true,
+    "push_to_asgard": true,
+    "push_to_siem": false,
+    "rule_packages": {
+      "create_bundles": true,
+      "bundle_by_category": true,
+      "bundle_by_severity": true,
+      "compression": "gzip"
+    }
+  },
+  "api_keys": {
+    "virustotal": "",
+    "alienvault": "",
+    "shodan": "",
+    "censys": "",
+    "valhalla": ""
+  },
+  "monitoring": {
+    "track_feed_health": true,
+    "alert_on_feed_failure": true,
+    "alert_on_stale_feeds_hours": 48,
+    "metrics_export": true,
+    "prometheus_endpoint": "/metrics"
+  },
+  "cache": {
+    "enable_redis": false,
+    "redis_host": "localhost",
+    "redis_port": 6379,
+    "cache_ttl_seconds": 3600,
+    "firestore_cache": true
+  }
+}

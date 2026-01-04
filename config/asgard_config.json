@@ -1,0 +1,126 @@
+{
+  "tenant_id": "default",
+  "gcp_project_id": "your-gcp-project-id",
+  "pubsub_topics": {
+    "campaigns": "asgard-campaigns",
+    "scan_tasks": "asgard-scan-tasks",
+    "scan_results": "thor-findings",
+    "agent_heartbeat": "thor-heartbeat"
+  },
+  "orchestration": {
+    "max_parallel_scans_per_campaign": 50,
+    "default_scan_timeout_minutes": 120,
+    "retry_failed_scans": true,
+    "max_retries": 2,
+    "retry_delay_minutes": 5,
+    "enable_priority_queue": true,
+    "enable_load_balancing": true
+  },
+  "endpoint_discovery": {
+    "auto_discover_gcp_vms": true,
+    "auto_discover_aws_ec2": false,
+    "auto_discover_azure_vms": false,
+    "auto_discover_interval_hours": 1,
+    "required_labels": {
+      "soc_agent": "enabled"
+    },
+    "default_groups": ["production", "staging", "development"],
+    "health_check_interval_seconds": 60
+  },
+  "scheduling": {
+    "enable_scheduled_campaigns": true,
+    "enable_recurring_hunts": true,
+    "default_maintenance_window": {
+      "days": ["saturday", "sunday"],
+      "start_hour": 2,
+      "end_hour": 6,
+      "timezone": "UTC"
+    },
+    "priority_execution_thresholds": {
+      "critical": 0,
+      "high": 60,
+      "medium": 1440,
+      "low": 10080
+    }
+  },
+  "campaign_templates": [
+    {
+      "name": "Ransomware Hunt",
+      "description": "Comprehensive ransomware detection campaign",
+      "scan_types": ["filesystem", "process", "network"],
+      "yara_rule_sets": ["ransomware", "crypto_malware"],
+      "ioc_feeds": ["valhalla", "threatfox"],
+      "priority": "high",
+      "target_all_endpoints": true
+    },
+    {
+      "name": "APT Hunt",
+      "description": "Advanced persistent threat detection",
+      "scan_types": ["filesystem", "process", "network", "registry"],
+      "yara_rule_sets": ["apt", "backdoor", "webshell"],
+      "ioc_feeds": ["valhalla", "misp"],
+      "priority": "high",
+      "target_all_endpoints": true
+    },
+    {
+      "name": "Cryptocurrency Miner Hunt",
+      "description": "Detect cryptocurrency mining malware",
+      "scan_types": ["process", "network"],
+      "yara_rule_sets": ["cryptominer"],
+      "behavioral_checks": ["high_cpu_usage", "mining_pool_connections"],
+      "priority": "medium"
+    },
+    {
+      "name": "Webshell Hunt",
+      "description": "Web server webshell detection",
+      "scan_types": ["filesystem"],
+      "yara_rule_sets": ["webshell"],
+      "target_criteria": {
+        "labels": {"role": "webserver"}
+      },
+      "priority": "high"
+    }
+  ],
+  "integration": {
+    "publish_to_taa": true,
+    "publish_to_siem": true,
+    "create_tickets_for_critical": true,
+    "auto_trigger_cra": true,
+    "send_summary_emails": true,
+    "slack_notifications": false,
+    "teams_notifications": false
+  },
+  "reporting": {
+    "store_in_bigquery": true,
+    "bigquery_dataset": "soc_data",
+    "bigquery_table": "asgard_campaign_reports",
+    "generate_pdf_reports": false,
+    "report_retention_days": 365
+  },
+  "ui_dashboard": {
+    "enabled": false,
+    "port": 8080,
+    "auth_required": true,
+    "metrics_endpoint": "/metrics",
+    "health_endpoint": "/health"
+  },
+  "resource_management": {
+    "endpoint_resource_limits": {
+      "max_cpu_percent": 50,
+      "max_memory_percent": 30,
+      "max_disk_io_mbps": 100
+    },
+    "scan_throttling": {
+      "enabled": true,
+      "max_scans_per_minute": 100,
+      "back_off_multiplier": 1.5
+    }
+  },
+  "security": {
+    "require_approval_for_full_scans": false,
+    "require_approval_for_memory_scans": true,
+    "allowed_scan_users": ["soc_admin", "soc_analyst"],
+    "audit_all_campaigns": true,
+    "encrypt_scan_results": false
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "tenant_id": "default",
+  "gcp_project_id": "your-gcp-project-id",
+  "yara": {
+    "rules_path": "/opt/thor/yara_rules",
+    "enable_memory_scan": true,
+    "enable_process_scan": true,
+    "auto_update_rules": true,
+    "update_interval_hours": 6
+  },
+  "ioc": {
+    "feeds": ["valhalla", "threatfox", "malwarebazaar"],
+    "update_interval_hours": 6,
+    "auto_sync": true
+  },
+  "sigma": {
+    "rules_path": "/opt/thor/sigma_rules",
+    "backends": ["splunk", "elk", "windows_event_log"],
+    "enable_log_scanning": true
+  },
+  "scan_exclusions": {
+    "paths": [
+      "/proc",
+      "/sys",
+      "/dev",
+      "/var/run",
+      "/tmp/.X11-unix"
+    ],
+    "extensions": [
+      ".tmp",
+      ".log",
+      ".cache",
+      ".pid",
+      ".lock"
+    ],
+    "max_file_size_mb": 500
+  },
+  "scan_limits": {
+    "max_depth": 10,
+    "max_files_per_scan": 1000000,
+    "timeout_minutes": 120,
+    "max_memory_mb": 4096
+  },
+  "pubsub_topics": {
+    "scan_requests": "thor-scan-requests",
+    "findings": "thor-findings",
+    "heartbeat": "thor-heartbeat"
+  },
+  "behavioral_analysis": {
+    "enable_process_tree": true,
+    "enable_network_baseline": true,
+    "enable_file_integrity": true,
+    "suspicious_process_patterns": [
+      "powershell.*-encodedcommand",
+      "powershell.*-nop.*-w.*hidden",
+      "cmd.exe.*whoami",
+      "cmd.exe.*net user",
+      ".*mimikatz.*",
+      ".*procdump.*",
+      ".*psexec.*",
+      ".*wmic.*process.*call.*create",
+      "rundll32.*javascript:",
+      "regsvr32.*/s.*/u.*/i:http"
+    ],
+    "suspicious_network_patterns": {
+      "non_standard_ports": [1337, 4444, 5555, 6666, 8888],
+      "c2_beacon_intervals": [60, 300, 600],
+      "suspicious_tlds": [".tk", ".ml", ".ga", ".cf", ".gq"]
+    }
+  },
+  "reporting": {
+    "store_in_bigquery": true,
+    "bigquery_dataset": "soc_data",
+    "bigquery_table": "thor_scan_results",
+    "publish_to_pubsub": true,
+    "send_to_taa": true,
+    "send_to_siem": true
+  },
+  "integration": {
+    "valhalla_sync": true,
+    "asgard_managed": true,
+    "taa_enrichment": true,
+    "cra_auto_response": true
+  },
+  "performance": {
+    "max_parallel_file_scans": 10,
+    "io_nice_priority": 3,
+    "cpu_nice_priority": 10,
+    "enable_incremental_scans": true
+  }
+}
