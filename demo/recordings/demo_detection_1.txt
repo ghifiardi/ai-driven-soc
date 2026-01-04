@@ -1,0 +1,62 @@
+
+    ╔══════════════════════════════════════════════════════════════╗
+    ║           AI-DRIVEN SOC PLATFORM - DEMO MODE                ║
+    ║                                                              ║
+    ║   This is a simulation for demonstration purposes only.     ║
+    ║   No real security events or customer data are used.        ║
+    ╚══════════════════════════════════════════════════════════════╝
+    
+
+======================================================================
+                    THREAT DETECTION SIMULATION
+======================================================================
+
+[2025-12-31T11:50:05.716162Z] Phase 1: EVENT INGESTION
+  Tenant: Globex Industries (Manufacturing)
+  Processing incoming security events...
+  └─ Batch 1: 1375 events ingested
+  └─ Batch 2: 859 events ingested
+  └─ Batch 3: 1698 events ingested
+  └─ Batch 4: 1975 events ingested
+  └─ Batch 5: 1943 events ingested
+
+[2025-12-31T11:50:08.236771Z] Phase 2: ADA ANOMALY DETECTION
+  Running ML models...
+  └─ Isolation Forest: Anomaly score 0.89
+  └─ Behavioral baseline: Deviation detected
+  └─ Pattern matching: 1247 correlated events
+
+  ⚠️  ANOMALY DETECTED!
+  ├─ Type: Brute Force Attack
+  ├─ Severity: HIGH
+  ├─ Source: 185.143.223.XXX
+  ├─ Target: auth-server-01
+  ├─ Confidence: 94%
+  └─ Detection Time: 87ms
+
+[2025-12-31T11:50:10.246700Z] Phase 3: TAA TRIAGE & ANALYSIS
+  Enriching alert with context...
+  └─ Threat Intelligence: Matched 3 indicators
+  └─ Asset criticality: HIGH
+  └─ Historical context: No prior incidents
+
+  🤖 LLM Analysis (Gemini):
+  ┌────────────────────────────────────────────────────────────┐
+  │ Multiple failed login attempts from single IP
+  │ Risk Assessment: HIGH - Immediate action required
+  │ Recommendation: AUTO_BLOCK
+  └────────────────────────────────────────────────────────────┘
+
+[2025-12-31T11:50:12.258846Z] Phase 4: AUTOMATED RESPONSE
+  Action: AUTO_BLOCK
+  └─ Blocking source IP at firewall...
+  └─ Response executed successfully
+  └─ Incident ticket created: INC-28288
+
+======================================================================
+  ✅ THREAT CONTAINED
+  Total Time: 474ms (0.5 seconds)
+  Status: AUTO_BLOCK completed
+======================================================================
+
+  return datetime.utcnow().isoformat() + "Z"

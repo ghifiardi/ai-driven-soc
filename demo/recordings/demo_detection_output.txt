@@ -1,0 +1,63 @@
+/Users/raditio.ghifiardigmail.com/Downloads/ai-driven-soc.backup/demo/demo_simulation.py:112: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  return datetime.utcnow().isoformat() + "Z"
+
+    ╔══════════════════════════════════════════════════════════════╗
+    ║           AI-DRIVEN SOC PLATFORM - DEMO MODE                ║
+    ║                                                              ║
+    ║   This is a simulation for demonstration purposes only.     ║
+    ║   No real security events or customer data are used.        ║
+    ╚══════════════════════════════════════════════════════════════╝
+    
+
+======================================================================
+                    THREAT DETECTION SIMULATION
+======================================================================
+
+[2025-12-31T11:49:22.726927Z] Phase 1: EVENT INGESTION
+  Tenant: Initech Solutions (Technology)
+  Processing incoming security events...
+  └─ Batch 1: 917 events ingested
+  └─ Batch 2: 1004 events ingested
+  └─ Batch 3: 1547 events ingested
+  └─ Batch 4: 1942 events ingested
+  └─ Batch 5: 1682 events ingested
+
+[2025-12-31T11:49:25.244253Z] Phase 2: ADA ANOMALY DETECTION
+  Running ML models...
+  └─ Isolation Forest: Anomaly score 0.88
+  └─ Behavioral baseline: Deviation detected
+  └─ Pattern matching: 89 correlated events
+
+  ⚠️  ANOMALY DETECTED!
+  ├─ Type: Lateral Movement Detected
+  ├─ Severity: HIGH
+  ├─ Source: 10.0.3.XXX
+  ├─ Target: multiple-hosts
+  ├─ Confidence: 91%
+  └─ Detection Time: 203ms
+
+[2025-12-31T11:49:27.255763Z] Phase 3: TAA TRIAGE & ANALYSIS
+  Enriching alert with context...
+  └─ Threat Intelligence: Matched 3 indicators
+  └─ Asset criticality: HIGH
+  └─ Historical context: No prior incidents
+
+  🤖 LLM Analysis (Gemini):
+  ┌────────────────────────────────────────────────────────────┐
+  │ Suspicious RDP connections across network segments
+  │ Risk Assessment: HIGH - Immediate action required
+  │ Recommendation: ISOLATE
+  └────────────────────────────────────────────────────────────┘
+
+[2025-12-31T11:49:29.266486Z] Phase 4: AUTOMATED RESPONSE
+  Action: ISOLATE
+  └─ Isolating network segment...
+  └─ Response executed successfully
+  └─ Incident ticket created: INC-67012
+
+======================================================================
+  ✅ THREAT CONTAINED
+  Total Time: 597ms (0.6 seconds)
+  Status: ISOLATE completed
+======================================================================
+

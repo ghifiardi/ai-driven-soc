@@ -1,0 +1,35 @@
+
+    ╔══════════════════════════════════════════════════════════════╗
+    ║           AI-DRIVEN SOC PLATFORM - DEMO MODE                ║
+    ║                                                              ║
+    ║   This is a simulation for demonstration purposes only.     ║
+    ║   No real security events or customer data are used.        ║
+    ╚══════════════════════════════════════════════════════════════╝
+    
+
+[DEMO] Starting event stream simulation...
+============================================================
+[2025-12-31T11:50:27.064854Z] Processed 401 dns_query events | Tenant: Globex Industries | Total: 401
+[2025-12-31T11:50:27.569977Z] Processed 269 authentication events | Tenant: ACME Corporation | Total: 670
+[2025-12-31T11:50:28.075069Z] Processed 193 network_flow events | Tenant: ACME Corporation | Total: 863
+[2025-12-31T11:50:28.600517Z] Processed 393 email_event events | Tenant: Globex Industries | Total: 1,256
+[2025-12-31T11:50:29.104521Z] Processed 218 endpoint_telemetry events | Tenant: ACME Corporation | Total: 1,474
+[2025-12-31T11:50:29.605003Z] Processed 300 process_execution events | Tenant: Initech Solutions | Total: 1,774
+[2025-12-31T11:50:30.107128Z] Processed 492 endpoint_telemetry events | Tenant: ACME Corporation | Total: 2,266
+[2025-12-31T11:50:30.611295Z] Processed 443 email_event events | Tenant: Initech Solutions | Total: 2,709
+[2025-12-31T11:50:31.115211Z] Processed 159 http_request events | Tenant: Initech Solutions | Total: 2,868
+[2025-12-31T11:50:31.618483Z] Processed 415 process_execution events | Tenant: Initech Solutions | Total: 3,283
+[2025-12-31T11:50:32.119994Z] Processed 128 file_access events | Tenant: Globex Industries | Total: 3,411
+[2025-12-31T11:50:32.621916Z] Processed 447 file_access events | Tenant: Initech Solutions | Total: 3,858
+[2025-12-31T11:50:33.125344Z] Processed 339 dns_query events | Tenant: Initech Solutions | Total: 4,197
+[2025-12-31T11:50:33.630488Z] Processed 319 dns_query events | Tenant: Globex Industries | Total: 4,516
+[2025-12-31T11:50:34.134740Z] Processed 457 email_event events | Tenant: Globex Industries | Total: 4,973
+[2025-12-31T11:50:34.639865Z] Processed 283 endpoint_telemetry events | Tenant: Initech Solutions | Total: 5,256
+  └─ [ADA] Anomaly detected! Confidence: 0.89
+[2025-12-31T11:50:35.142900Z] Processed 249 endpoint_telemetry events | Tenant: Initech Solutions | Total: 5,505
+[2025-12-31T11:50:35.647378Z] Processed 485 process_execution events | Tenant: ACME Corporation | Total: 5,990
+[2025-12-31T11:50:36.152469Z] Processed 179 authentication events | Tenant: Initech Solutions | Total: 6,169
+[2025-12-31T11:50:36.657120Z] Processed 292 endpoint_telemetry events | Tenant: Globex Industries | Total: 6,461
+============================================================
+[DEMO] Event stream ended. Total events: 6,461
+  return datetime.utcnow().isoformat() + "Z"
