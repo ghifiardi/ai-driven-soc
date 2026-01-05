@@ -245,7 +245,7 @@ class THOREndpointAgent:
         }
 
     def load_yara_rules(self) -> None:
-        """Load and compile YARA rules from directory"""
+        """Load and compile YARA rules from directory, skipping invalid rules"""
         try:
             if not self.yara_rules_path.exists():
                 logger.warning(f"YARA rules path {self.yara_rules_path} does not exist")
@@ -256,16 +256,52 @@ class THOREndpointAgent:
             for ext in ['.yar', '.yara']:
                 for rule_file in self.yara_rules_path.rglob(f"*{ext}"):
                     namespace = rule_file.stem
+                    # Handle duplicate names by adding parent directory
+                    if namespace in rule_files:
+                        namespace = f"{rule_file.parent.name}_{namespace}"
                     rule_files[namespace] = str(rule_file)
 
-            if rule_files:
+            if not rule_files:
+                logger.warning("No YARA rules found")
+                return
+
+            # Try to compile all rules at once first (faster)
+            try:
                 self.compiled_rules = yara.compile(filepaths=rule_files)
                 logger.info(f"Loaded {len(rule_files)} YARA rule files")
-            else:
-                logger.warning("No YARA rules found")
+            except yara.SyntaxError as e:
+                # If compilation fails, try loading rules individually
+                logger.warning(f"Bulk compilation failed: {e}. Loading rules individually...")
+                valid_rules = {}
+                errors = 0
+                
+                for namespace, filepath in rule_files.items():
+                    try:
+                        # Test compile individual rule
+                        test_rule = yara.compile(filepath=filepath)
+                        valid_rules[namespace] = filepath
+                    except yara.SyntaxError as rule_error:
+                        errors += 1
+                        logger.debug(f"Skipping invalid rule {filepath}: {rule_error}")
+                    except Exception as rule_error:
+                        errors += 1
+                        logger.debug(f"Skipping rule {filepath}: {rule_error}")
+                
+                if valid_rules:
+                    try:
+                        self.compiled_rules = yara.compile(filepaths=valid_rules)
+                        logger.info(f"Loaded {len(valid_rules)}/{len(rule_files)} YARA rule files "
+                                  f"({errors} skipped due to errors)")
+                    except Exception as compile_error:
+                        logger.error(f"Failed to compile valid rules: {compile_error}")
+                        self.compiled_rules = None
+                else:
+                    logger.warning(f"No valid YARA rules found (all {len(rule_files)} had errors)")
+                    self.compiled_rules = None
 
         except Exception as e:
             logger.error(f"Failed to load YARA rules: {e}")
+            self.compiled_rules = None
 
     def load_iocs(self, ioc_data: Optional[Dict] = None) -> None:
         """

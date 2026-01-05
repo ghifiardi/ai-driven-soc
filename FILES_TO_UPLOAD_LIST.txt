@@ -1,0 +1,49 @@
+# Files to Upload to GCP Instance
+
+## Upload Location: ~/threat-hunting-test/
+
+### Main Directory Files:
+1. thor_endpoint_agent.py
+2. asgard_orchestration_agent.py
+3. valhalla_feed_manager.py
+4. threat_hunting_quickstart.py
+5. requirements_threat_hunting.txt
+6. THREAT_HUNTING_README.md
+7. complete_setup_script.sh (optional - for reference)
+
+## Upload Location: ~/threat-hunting-test/config/
+
+### Config Files:
+1. config/thor_config.json
+2. config/asgard_config.json
+3. config/valhalla_config.json
+
+## Quick Upload Commands (if you have gcloud access from another machine):
+
+```bash
+# From your local machine with proper gcloud auth:
+cd /Users/raditio.ghifiardigmail.com/Downloads/ai-driven-soc.backup
+
+# Upload main files
+gcloud compute scp \
+  thor_endpoint_agent.py \
+  asgard_orchestration_agent.py \
+  valhalla_feed_manager.py \
+  threat_hunting_quickstart.py \
+  requirements_threat_hunting.txt \
+  THREAT_HUNTING_README.md \
+  app@xdgaisocapp01:~/threat-hunting-test/ \
+  --zone=asia-southeast2-a --project=chronicle-dev-2be9
+
+# Upload config files
+gcloud compute scp \
+  config/thor_config.json \
+  config/asgard_config.json \
+  config/valhalla_config.json \
+  app@xdgaisocapp01:~/threat-hunting-test/config/ \
+  --zone=asia-southeast2-a --project=chronicle-dev-2be9
+```
+
+## File Sizes (for reference):
+Check file sizes before upload to estimate time.
+

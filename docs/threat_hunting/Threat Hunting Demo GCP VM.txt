@@ -1,0 +1,52 @@
+==========================================
+  Threat Hunting Platform Demo
+==========================================
+
+1. Environment:
+/home/app/threat-hunting-test
+Python 3.6.8
+
+2. Components:
+-rw-rw-r--. 1 app app 31K Jan  5 07:48 asgard_orchestration_agent.py
+-rw-rw-r--. 1 app app 33K Jan  5 08:14 thor_endpoint_agent.py
+-rw-rw-r--. 1 app app 30K Jan  5 07:26 valhalla_feed_manager.py
+
+3. YARA Rules:
+total 8.0K
+-rw-rw-r--. 1 app app 1.7K Jan  5 08:12 test_malware_rules.yar
+-rw-rw-r--. 1 app app  226 Jan  5 07:42 test_rule.yar
+
+4. Test Files:
+total 20K
+-rw-rw-r--. 1 app app 162 Jan  5 08:12 test_backdoor.txt
+-rw-rw-r--. 1 app app 149 Jan  5 08:12 test_cryptominer.txt
+-rw-rw-r--. 1 app app 173 Jan  5 08:12 test_ransomware.txt
+-rw-rw-r--. 1 app app 150 Jan  5 08:12 test_suspicious.txt
+-rw-rw-r--. 1 app app 140 Jan  5 08:12 test_webshell.txt
+
+5. Running THOR Scan:
+  [HIGH] Test_Ransomware_Signature
+    Target: data/test_malware/test_ransomware.txt
+    Confidence: 85.00%
+  [HIGH] Test_Backdoor_Detection
+    Target: data/test_malware/test_backdoor.txt
+    Confidence: 85.00%
+  [HIGH] Test_Webshell_Detection
+    Target: data/test_malware/test_webshell.txt
+    Confidence: 85.00%
+  [MEDIUM] Test_CryptoMiner_Detection
+    Target: data/test_malware/test_cryptominer.txt
+    Confidence: 85.00%
+  [MEDIUM] TestRule
+    Target: data/test_malware/test_suspicious.txt
+    Confidence: 85.00%
+
+6. Summary:
+✓ THOR: Operational
+✓ ASGARD: Operational
+✓ VALHALLA: Operational
+✓ 6 threats detected
+(venv) [app@xdgaisocapp01 threat-hunting-test]$ exit
+exit
+
+Script done on 2026-01-05 09:31:48+00:00
