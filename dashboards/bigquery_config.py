@@ -94,15 +94,45 @@ def query_siem_events(limit: int = 100, hours: int = 24) -> pd.DataFrame:
     try:
         client = get_bigquery_client()
         
+        # The actual schema: alarmId, events (JSON), processed_by_ada
+        # Extract data from JSON events field
         query = f"""
-        SELECT *
+        SELECT 
+            alarmId as event_id,
+            events,
+            processed_by_ada,
+            JSON_EXTRACT_SCALAR(events, '$.timestamp') as timestamp,
+            JSON_EXTRACT_SCALAR(events, '$.event_type') as event_type,
+            JSON_EXTRACT_SCALAR(events, '$.severity') as severity,
+            JSON_EXTRACT_SCALAR(events, '$.source_ip') as source_ip,
+            JSON_EXTRACT_SCALAR(events, '$.destination_ip') as destination_ip,
+            JSON_EXTRACT_SCALAR(events, '$.source_country') as source_country,
+            JSON_EXTRACT_SCALAR(events, '$.status') as status,
+            JSON_EXTRACT_SCALAR(events, '$.mitre_technique') as mitre_technique,
+            JSON_EXTRACT_SCALAR(events, '$.confidence') as confidence,
+            JSON_EXTRACT_SCALAR(events, '$.threat_actor') as threat_actor,
+            JSON_EXTRACT_SCALAR(events, '$.affected_asset') as affected_asset
         FROM `{BIGQUERY_TABLES['siem_events']}`
-        WHERE TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), timestamp, HOUR) <= {hours}
-        ORDER BY timestamp DESC
+        ORDER BY alarmId DESC
         LIMIT {limit}
         """
         
-        return client.query(query).to_dataframe()
+        df = client.query(query).to_dataframe()
+        
+        # Convert timestamp if it exists
+        if 'timestamp' in df.columns and not df['timestamp'].isna().all():
+            try:
+                df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+            except:
+                pass
+        
+        # Set default values for missing columns to match dashboard expectations
+        if 'severity' in df.columns:
+            df['severity'] = df['severity'].fillna('Medium')
+        if 'event_type' in df.columns:
+            df['event_type'] = df['event_type'].fillna('Security Event')
+        
+        return df
     except Exception as e:
         print(f"Error querying SIEM events: {e}")
         return pd.DataFrame()
@@ -146,14 +176,15 @@ def get_event_statistics(hours: int = 24) -> Dict:
     try:
         client = get_bigquery_client()
         
+        # The actual schema: alarmId, events (JSON), processed_by_ada
+        # Extract statistics from JSON events field
         query = f"""
         SELECT 
             COUNT(*) as total_events,
             COUNT(DISTINCT alarmId) as unique_alarms,
-            COUNT(DISTINCT source_ip) as unique_sources,
-            COUNT(DISTINCT destination_ip) as unique_destinations
+            COUNT(DISTINCT JSON_EXTRACT_SCALAR(events, '$.source_ip')) as unique_sources,
+            COUNT(DISTINCT JSON_EXTRACT_SCALAR(events, '$.destination_ip')) as unique_destinations
         FROM `{BIGQUERY_TABLES['siem_events']}`
-        WHERE TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), timestamp, HOUR) <= {hours}
         """
         
         result = client.query(query).result()

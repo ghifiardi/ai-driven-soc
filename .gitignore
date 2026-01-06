@@ -67,3 +67,8 @@ dist/
 # Local development
 *.local
 .env.local
+
+# Service account keys
+chronicle-key.json
+*chronicle*.json
+dashboards/chronicle-key.json
