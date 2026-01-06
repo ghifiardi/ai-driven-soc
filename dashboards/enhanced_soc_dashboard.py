@@ -519,12 +519,56 @@ def create_threat_timeline(df):
 
 def create_network_topology(df):
     """Create network topology graph"""
-    if df.empty or 'source_ip' not in df.columns:
+    if df.empty:
         return go.Figure()
+    
+    # Check if we have IP data
+    has_source_ip = 'source_ip' in df.columns and df['source_ip'].notna().any()
+    has_dest_ip = 'destination_ip' in df.columns and df['destination_ip'].notna().any()
+    
+    if not has_source_ip and not has_dest_ip:
+        # Return empty figure with message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No network topology data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16, color='white')
+        )
+        fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            height=450
+        )
+        return fig
 
-    # Get top source and destination IPs
-    top_sources = df['source_ip'].value_counts().head(10)
-    top_dests = df['destination_ip'].value_counts().head(10)
+    # Get top source and destination IPs (filter out None/Unknown)
+    source_ips = df['source_ip'].dropna() if has_source_ip else pd.Series(dtype=object)
+    dest_ips = df['destination_ip'].dropna() if has_dest_ip else pd.Series(dtype=object)
+    
+    # Filter out 'Unknown' and invalid IPs
+    source_ips = source_ips[~source_ips.isin(['Unknown', 'None', ''])]
+    dest_ips = dest_ips[~dest_ips.isin(['Unknown', 'None', ''])]
+    
+    if source_ips.empty and dest_ips.empty:
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No valid IP addresses found",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16, color='white')
+        )
+        fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            height=450
+        )
+        return fig
+    
+    top_sources = source_ips.value_counts().head(10) if not source_ips.empty else pd.Series(dtype=int)
+    top_dests = dest_ips.value_counts().head(10) if not dest_ips.empty else pd.Series(dtype=int)
 
     # Create network graph
     edge_trace = []
@@ -681,10 +725,57 @@ def create_response_funnel(df):
 
 def create_geo_distribution(df):
     """Create geographic threat distribution"""
-    if df.empty or 'source_country' not in df.columns:
+    if df.empty:
         return go.Figure()
+    
+    # Check if we have country data
+    if 'source_country' not in df.columns or df['source_country'].isna().all():
+        # Return empty map with message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No geographic data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=16, color='white')
+        )
+        fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            height=450
+        )
+        return go.Figure(data=go.Choropleth(
+            locations=[],
+            z=[],
+            colorscale='Reds'
+        )).update_layout(
+            title='Global Threat Origin Map',
+            geo=dict(showframe=False, showcoastlines=True),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            height=450
+        )
 
-    country_counts = df['source_country'].value_counts()
+    # Filter out Unknown/None countries
+    country_data = df['source_country'].dropna()
+    country_data = country_data[~country_data.isin(['Unknown', 'None', ''])]
+    
+    if country_data.empty:
+        return go.Figure(data=go.Choropleth(
+            locations=[],
+            z=[],
+            colorscale='Reds'
+        )).update_layout(
+            title='Global Threat Origin Map',
+            geo=dict(showframe=False, showcoastlines=True),
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            height=450
+        )
+
+    country_counts = country_data.value_counts()
 
     fig = go.Figure(data=go.Choropleth(
         locations=country_counts.index,
@@ -933,39 +1024,56 @@ if show_analytics:
 
     with col1:
         st.markdown("#### 🎯 Threat Actor Profiling")
-        if 'threat_actor' in df_filtered.columns:
-            actor_counts = df_filtered['threat_actor'].value_counts().head(5)
-            for actor, count in actor_counts.items():
-                st.markdown(f'<div class="code-block">{actor}: {count} attacks</div>', unsafe_allow_html=True)
+        if 'threat_actor' in df_filtered.columns and df_filtered['threat_actor'].notna().any():
+            actor_counts = df_filtered['threat_actor'].dropna().value_counts().head(5)
+            if not actor_counts.empty:
+                for actor, count in actor_counts.items():
+                    if actor and str(actor) not in ['None', 'Unknown', '']:
+                        st.markdown(f'<div class="code-block">{actor}: {count} attacks</div>', unsafe_allow_html=True)
+            else:
+                st.info("No threat actor data available")
+        else:
+            st.info("No threat actor data available")
 
     with col2:
         st.markdown("#### 🔍 Top Targeted Assets")
-        if 'affected_asset' in df_filtered.columns:
-            asset_counts = df_filtered['affected_asset'].value_counts().head(5)
-            for asset, count in asset_counts.items():
-                risk_level = "🔴" if count > 10 else "🟡" if count > 5 else "🟢"
-                st.markdown(f'{risk_level} **{asset}**: {count} incidents')
+        if 'affected_asset' in df_filtered.columns and df_filtered['affected_asset'].notna().any():
+            asset_counts = df_filtered['affected_asset'].dropna().value_counts().head(5)
+            if not asset_counts.empty:
+                for asset, count in asset_counts.items():
+                    if asset and str(asset) not in ['None', 'Unknown', '']:
+                        risk_level = "🔴" if count > 10 else "🟡" if count > 5 else "🟢"
+                        st.markdown(f'{risk_level} **{asset}**: {count} incidents')
+            else:
+                st.info("No asset data available")
+        else:
+            st.info("No asset data available")
 
     with col3:
         st.markdown("#### 📊 Protocol Analysis")
-        if 'protocol' in df_filtered.columns:
-            protocol_counts = df_filtered['protocol'].value_counts().head(5)
-            fig_protocol = px.bar(
-                x=protocol_counts.values,
-                y=protocol_counts.index,
-                orientation='h',
-                color=protocol_counts.values,
-                color_continuous_scale='Reds'
-            )
-            fig_protocol.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                font=dict(color='white', size=10),
-                height=200,
-                showlegend=False,
-                margin=dict(l=0, r=0, t=0, b=0)
-            )
-            st.plotly_chart(fig_protocol, use_container_width=True)
+        if 'protocol' in df_filtered.columns and df_filtered['protocol'].notna().any():
+            protocol_counts = df_filtered['protocol'].dropna().value_counts().head(5)
+            if not protocol_counts.empty:
+                fig_protocol = px.bar(
+                    x=protocol_counts.values,
+                    y=protocol_counts.index,
+                    orientation='h',
+                    color=protocol_counts.values,
+                    color_continuous_scale='Reds'
+                )
+                fig_protocol.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    font=dict(color='white', size=10),
+                    height=200,
+                    showlegend=False,
+                    margin=dict(l=0, r=0, t=0, b=0)
+                )
+                st.plotly_chart(fig_protocol, use_container_width=True)
+            else:
+                st.info("No protocol data available")
+        else:
+            st.info("No protocol data available")
 
     st.markdown('</div>', unsafe_allow_html=True)
 
