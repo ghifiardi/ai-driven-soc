@@ -140,7 +140,7 @@ def query_siem_events(limit: int = 100, hours: int = 24) -> pd.DataFrame:
         FROM `{BIGQUERY_TABLES['siem_events']}`
         ORDER BY alarmId DESC
         LIMIT {limit}
-        """
+        """.format(limit=limit)
         
         df = client.query(query).to_dataframe()
         
