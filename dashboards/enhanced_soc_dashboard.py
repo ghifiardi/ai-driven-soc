@@ -1104,11 +1104,26 @@ if show_events:
 
         # Select columns to display
         columns_to_show = ['timestamp', 'event_id', 'severity', 'event_type',
-                          'source_ip', 'destination_ip', 'status', 'confidence']
+                          'source_ip', 'destination_ip', 'status', 'confidence', 'protocol']
         available_columns = [col for col in columns_to_show if col in display_df.columns]
+        
+        # Clean up display - replace None/NaN with readable values
+        display_df_clean = display_df[available_columns].copy()
+        for col in display_df_clean.columns:
+            # Replace None/NaN with readable text
+            display_df_clean[col] = display_df_clean[col].fillna('N/A')
+            # Replace string 'None' with 'N/A'
+            if display_df_clean[col].dtype == 'object':
+                display_df_clean[col] = display_df_clean[col].replace(['None', 'null', 'NULL'], 'N/A')
+        
+        # Format numeric columns
+        if 'confidence' in display_df_clean.columns:
+            display_df_clean['confidence'] = display_df_clean['confidence'].apply(
+                lambda x: f"{x:.0f}%" if pd.notna(x) and isinstance(x, (int, float)) else str(x)
+            )
 
         st.dataframe(
-            display_df[available_columns].head(20),
+            display_df_clean.head(20),
             use_container_width=True,
             height=400
         )
