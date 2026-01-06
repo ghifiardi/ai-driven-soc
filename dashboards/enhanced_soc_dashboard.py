@@ -466,6 +466,22 @@ def create_threat_timeline(df):
 
     # Group by hour
     df_copy = df.copy()
+    
+    # Ensure timestamp is datetime type
+    if not pd.api.types.is_datetime64_any_dtype(df_copy['timestamp']):
+        try:
+            df_copy['timestamp'] = pd.to_datetime(df_copy['timestamp'], errors='coerce')
+        except Exception:
+            # If conversion fails, return empty figure
+            return go.Figure()
+    
+    # Remove rows with invalid timestamps
+    df_copy = df_copy.dropna(subset=['timestamp'])
+    
+    if df_copy.empty:
+        return go.Figure()
+    
+    # Group by hour
     df_copy['hour'] = df_copy['timestamp'].dt.floor('H')
     timeline_data = df_copy.groupby(['hour', 'severity']).size().reset_index(name='count')
 
@@ -802,6 +818,14 @@ if severity_filter:
 else:
     df_filtered = df
 
+# Ensure timestamp is datetime type for all visualizations
+if 'timestamp' in df_filtered.columns:
+    if not pd.api.types.is_datetime64_any_dtype(df_filtered['timestamp']):
+        try:
+            df_filtered['timestamp'] = pd.to_datetime(df_filtered['timestamp'], errors='coerce')
+        except Exception:
+            pass  # Keep as-is if conversion fails
+
 # Overview Metrics
 if show_overview:
     st.markdown("---")
@@ -963,7 +987,11 @@ if show_events:
 
         # Sort by timestamp
         if 'timestamp' in display_df.columns:
+            # Ensure timestamp is datetime for sorting
+            if not pd.api.types.is_datetime64_any_dtype(display_df['timestamp']):
+                display_df['timestamp'] = pd.to_datetime(display_df['timestamp'], errors='coerce')
             display_df = display_df.sort_values('timestamp', ascending=False)
+            # Format for display
             display_df['timestamp'] = display_df['timestamp'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
         # Select columns to display
