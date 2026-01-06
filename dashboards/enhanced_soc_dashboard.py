@@ -286,42 +286,78 @@ if 'selected_severity' not in st.session_state:
 if 'date_range' not in st.session_state:
     st.session_state.date_range = 24  # hours
 
+# Import BigQuery configuration
+try:
+    from bigquery_config import (
+        get_bigquery_client,
+        test_bigquery_connection,
+        get_event_statistics,
+        query_siem_events,
+        get_available_tables,
+        BIGQUERY_TABLES,
+        GCP_PROJECT_ID,
+        BIGQUERY_DATASET
+    )
+    BIGQUERY_AVAILABLE = True
+except ImportError:
+    BIGQUERY_AVAILABLE = False
+
 # Helper Functions
 def try_bigquery_connection():
     """Attempt BigQuery connection with detailed feedback"""
+    if not BIGQUERY_AVAILABLE:
+        return {
+            'success': False,
+            'error': 'BigQuery config module not available',
+            'total_events': 0,
+            'unique_alarms': 0,
+            'sample_data': pd.DataFrame()
+        }
+    
     try:
-        from google.cloud import bigquery
-
-        client = bigquery.Client(project="chronicle-dev-2be9")
-
-        query = """
-        SELECT
-            COUNT(*) as total_events,
-            COUNT(DISTINCT alarmId) as unique_alarms
-        FROM `chronicle-dev-2be9.gatra_database.siem_events`
-        """
-
-        result = client.query(query).result()
-
-        for row in result:
-            sample_query = """
-            SELECT
-                alarmId,
-                events,
-                processed_by_ada
-            FROM `chronicle-dev-2be9.gatra_database.siem_events`
-            ORDER BY alarmId DESC
-            LIMIT 100
-            """
-
-            sample_result = client.query(sample_query).to_dataframe()
-
+        # Test connection
+        connection_test = test_bigquery_connection()
+        if not connection_test['success']:
             return {
-                'success': True,
-                'total_events': row.total_events,
-                'unique_alarms': row.unique_alarms,
-                'sample_data': sample_result
+                'success': False,
+                'error': connection_test.get('error', 'Connection failed'),
+                'total_events': 0,
+                'unique_alarms': 0,
+                'sample_data': pd.DataFrame()
             }
+        
+        # Get statistics
+        stats = get_event_statistics(hours=24)
+        
+        # Get sample data
+        sample_data = query_siem_events(limit=100, hours=24)
+        
+        # Transform data if needed (handle different table structures)
+        if not sample_data.empty:
+            # Map BigQuery columns to dashboard expected columns
+            column_mapping = {
+                'alarmId': 'event_id',
+                'timestamp': 'timestamp',
+                'events': 'event_type',
+                'processed_by_ada': 'analyst_assigned'
+            }
+            
+            # Rename columns if they exist
+            for old_col, new_col in column_mapping.items():
+                if old_col in sample_data.columns and new_col not in sample_data.columns:
+                    sample_data = sample_data.rename(columns={old_col: new_col})
+        
+        return {
+            'success': True,
+            'total_events': stats.get('total_events', 0),
+            'unique_alarms': stats.get('unique_alarms', 0),
+            'unique_sources': stats.get('unique_sources', 0),
+            'unique_destinations': stats.get('unique_destinations', 0),
+            'sample_data': sample_data,
+            'tables_available': get_available_tables(),
+            'project_id': GCP_PROJECT_ID,
+            'dataset': BIGQUERY_DATASET
+        }
 
     except Exception as e:
         return {

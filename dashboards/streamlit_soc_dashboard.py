@@ -115,43 +115,59 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Import BigQuery configuration
+try:
+    from bigquery_config import (
+        get_bigquery_client,
+        test_bigquery_connection,
+        get_event_statistics,
+        query_siem_events,
+        GCP_PROJECT_ID,
+        BIGQUERY_DATASET
+    )
+    BIGQUERY_AVAILABLE = True
+except ImportError:
+    BIGQUERY_AVAILABLE = False
+
 def try_bigquery_connection():
     """Attempt BigQuery connection with detailed feedback"""
+    if not BIGQUERY_AVAILABLE:
+        return {
+            'success': False,
+            'error': 'BigQuery config module not available',
+            'total_events': 0,
+            'unique_alarms': 0,
+            'sample_data': pd.DataFrame()
+        }
+    
     try:
-        from google.cloud import bigquery
-        
-        client = bigquery.Client(project="chronicle-dev-2be9")
-        
-        # Test query
-        query = """
-        SELECT 
-            COUNT(*) as total_events,
-            COUNT(DISTINCT alarmId) as unique_alarms
-        FROM `chronicle-dev-2be9.gatra_database.siem_events`
-        """
-        
-        result = client.query(query).result()
-        
-        for row in result:
-            # Get sample data
-            sample_query = """
-            SELECT 
-                alarmId,
-                events,
-                processed_by_ada
-            FROM `chronicle-dev-2be9.gatra_database.siem_events`
-            ORDER BY alarmId DESC
-            LIMIT 50
-            """
-            
-            sample_result = client.query(sample_query).to_dataframe()
-            
+        # Test connection
+        connection_test = test_bigquery_connection()
+        if not connection_test['success']:
             return {
-                'success': True,
-                'total_events': row.total_events,
-                'unique_alarms': row.unique_alarms,
-                'sample_data': sample_result
+                'success': False,
+                'error': connection_test.get('error', 'Connection failed'),
+                'total_events': 0,
+                'unique_alarms': 0,
+                'sample_data': pd.DataFrame()
             }
+        
+        # Get statistics
+        stats = get_event_statistics(hours=24)
+        
+        # Get sample data
+        sample_data = query_siem_events(limit=50, hours=24)
+        
+        # Map columns if needed
+        if not sample_data.empty and 'alarmId' in sample_data.columns:
+            sample_data = sample_data.rename(columns={'alarmId': 'event_id'})
+        
+        return {
+            'success': True,
+            'total_events': stats.get('total_events', 0),
+            'unique_alarms': stats.get('unique_alarms', 0),
+            'sample_data': sample_data
+        }
             
     except Exception as e:
         return {
