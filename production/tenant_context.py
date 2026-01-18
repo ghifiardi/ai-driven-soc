@@ -81,6 +81,17 @@ def set_current_tenant(context: TenantContext):
     set_tenant_context(context.tenant_id)
 
 
+def set_tenant_context(tenant_id: str) -> None:
+    """Set tenant_id without requiring a full TenantContext."""
+    _tenant_id.set(tenant_id)
+    _tenant_config.set({"tenant_id": tenant_id})
+
+
+def get_current_tenant() -> str:
+    """Return the current tenant_id (compat shim for tests)."""
+    return _tenant_id.get()
+
+
 def get_current_tenant_id() -> str:
     """Get the current tenant ID."""
     return _tenant_id.get()

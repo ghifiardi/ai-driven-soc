@@ -288,11 +288,12 @@ def configure_tenant_limits(tenant_manager) -> TenantRateLimiter:
     """Configure rate limits from tenant manager."""
     rate_limiter = get_rate_limiter()
 
-    for tenant in tenant_manager.list_tenants():
+    for tenant_id in tenant_manager.list_tenants():
+        tenant = tenant_manager.get_tenant(tenant_id)
         rate_limiter.configure_tenant(
             tenant_id=tenant.tenant_id,
             ingest_eps=tenant.rate_limits.ingest_eps,
-            alerts_per_min=tenant.rate_limits.alerts_per_min
+            alerts_per_min=tenant.rate_limits.alerts_per_min,
         )
 
     return rate_limiter

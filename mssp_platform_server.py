@@ -28,8 +28,7 @@ try:
     from taa_a2a_mcp_agent import TAAA2AMCPAgent
 except ImportError:
     TAAA2AMCPAgent = None
-from advanced_anomaly_detection import GATRAAnomalyDetectionSystem
-import numpy as np
+GATRAAnomalyDetectionSystem = None  # Lazy-loaded in _load_anomaly_detector()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -39,6 +38,18 @@ logger = logging.getLogger(__name__)
 CONFIG_PATH = os.getenv("MULTITENANT_CONFIG_PATH", "config/gatra_multitenant_config.json")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_MINUTES = 60
+ENABLE_ANOMALY = os.getenv("ENABLE_ANOMALY", "0") == "1"
+
+
+def _load_anomaly_detector():
+    try:
+        from advanced_anomaly_detection import GATRAAnomalyDetectionSystem as detector_cls
+    except Exception as exc:
+        raise RuntimeError(
+            "Anomaly detection feature requires extra dependencies. "
+            "Install requirements-ml.txt to enable it."
+        ) from exc
+    return detector_cls
 
 # JWT Secret - MUST be provided via environment variable in production
 _jwt_secret = os.getenv("JWT_SECRET")
@@ -133,8 +144,11 @@ class MSSPPlatformServer:
         else:
             self.agent = None
         
-        # Initialize GATRA Engine
-        self.gatra = GATRAAnomalyDetectionSystem()
+        # Initialize GATRA Engine (optional)
+        self.gatra = None
+        if ENABLE_ANOMALY:
+            detector_cls = _load_anomaly_detector()
+            self.gatra = detector_cls()
         
         self._setup_middleware()
         self._setup_routes()
@@ -192,7 +206,8 @@ class MSSPPlatformServer:
         @self.app.post("/api/v1/auth/token")
         async def get_token(x_api_key: str = Header(...)):
             """Exchange an API Key for a JWT token."""
-            for tenant in self.tenant_manager.list_tenants():
+            for tenant_id in self.tenant_manager.list_tenants():
+                tenant = self.tenant_manager.get_tenant(tenant_id)
                 if tenant.api_key == x_api_key:
                     token = self._create_access_token(tenant.tenant_id)
                     return {"access_token": token, "token_type": "bearer"}
@@ -205,7 +220,8 @@ class MSSPPlatformServer:
         async def list_tenants():
             """List all registered tenants."""
             tenants = []
-            for t in self.tenant_manager.list_tenants():
+            for tenant_id in self.tenant_manager.list_tenants():
+                t = self.tenant_manager.get_tenant(tenant_id)
                 tenants.append({
                     "tenant_id": t.tenant_id,
                     "display_name": t.display_name,
@@ -341,6 +357,11 @@ class MSSPPlatformServer:
                 logger.error(f"BQ Persistence error: {e}")
 
         # 2. GATRA Analysis
+        if not self.gatra:
+            logger.info("GATRA anomaly detection disabled; skipping analysis.")
+            return
+
+        import numpy as np
         logger.info(f"GATRA analyzing {len(events)} events for tenant {tenant_id}")
         
         results = []

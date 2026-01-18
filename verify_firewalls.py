@@ -9,6 +9,7 @@ Tests:
 """
 
 import logging
+import os
 from multi_tenant_manager import MultiTenantManager, TenantConfig, TenantTables, TenantPubSubTopics, TenantRateLimits, FirewallConfig
 from palo_alto_integration import PaloAltoIntegration
 from checkpoint_integration import CheckpointIntegration
@@ -25,7 +26,7 @@ def test_tenant_config_schema():
             type="checkpoint",
             mgmt_ip="192.168.1.100",
             username="admin",
-            password="password",
+            password=os.getenv("FIREWALL_PASSWORD", ""),
             domain="MDS_Domain_1"
         )
         
@@ -75,7 +76,12 @@ def test_checkpoint_integration_simulation():
     try:
         # Initialize integration
         # Uses username/password
-        cpi = CheckpointIntegration("10.0.0.2", username="dummy", password="pw", domain="Global")
+        cpi = CheckpointIntegration(
+            "10.0.0.2",
+            username="dummy",
+            password=os.getenv("CHECKPOINT_PASSWORD", ""),
+            domain="Global",
+        )
         
         # Test 1: Block IP
         # Expecting simulated success
