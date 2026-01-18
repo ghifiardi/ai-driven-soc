@@ -1,0 +1,6 @@
+# =============================================================================
+# AI-Driven SOC Platform - Optional ML Dependencies
+# =============================================================================
+# Install with: pip install -r requirements-ml.txt
+
+numpy==1.26.4
