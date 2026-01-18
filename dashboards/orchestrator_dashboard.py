@@ -3,13 +3,20 @@ import hashlib
 import os
 import socket
 import uuid
-import xml.etree.ElementTree as ET
+from urllib.parse import urlparse
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
+
+# Safe XML parsing to avoid entity expansion / XXE
+try:
+    # defusedxml prevents entity expansion / XXE attacks
+    from defusedxml.ElementTree import fromstring as safe_xml_fromstring  # type: ignore
+except Exception:
+    safe_xml_fromstring = None  # type: ignore
 
 WIN_EVT_NS = {"ev": "http://schemas.microsoft.com/win/2004/08/events/event"}
 
@@ -19,6 +26,16 @@ def _safe_int(v, default: int = 0) -> int:
         return int(v)
     except Exception:
         return default
+
+
+def parse_xml_safe(xml_text: str):
+    """Return root element if safe XML parser is available; otherwise None."""
+    if not xml_text or safe_xml_fromstring is None:
+        return None
+    try:
+        return safe_xml_fromstring(xml_text)
+    except Exception:
+        return None
 
 
 def is_splunk_export_row(obj: Any) -> bool:
@@ -32,17 +49,16 @@ def parse_windows_eventdata_from_xml(raw_xml: str) -> Dict[str, str]:
     Safe: returns {} on parse failure.
     """
     out: Dict[str, str] = {}
-    try:
-        root = ET.fromstring(raw_xml)
-        event_data = root.find("ev:EventData", WIN_EVT_NS)
-        if event_data is None:
-            return out
-        for data in event_data.findall("ev:Data", WIN_EVT_NS):
-            name = data.attrib.get("Name")
-            if name:
-                out[name] = (data.text or "").strip()
-    except Exception:
+    root = parse_xml_safe(raw_xml)
+    if root is None:
         return out
+    event_data = root.find("ev:EventData", WIN_EVT_NS)
+    if event_data is None:
+        return out
+    for data in event_data.findall("ev:Data", WIN_EVT_NS):
+        name = data.attrib.get("Name")
+        if name:
+            out[name] = (data.text or "").strip()
     return out
 
 
@@ -88,18 +104,22 @@ def map_splunk_windows_security_to_orchestrator(splunk_row: Dict[str, Any]) -> D
 
     # Deterministic event_id
     record_id = None
-    try:
-        root = ET.fromstring(raw_xml)
+    root = parse_xml_safe(raw_xml)
+    if root is not None:
         rid_el = root.find("ev:System/ev:EventRecordID", WIN_EVT_NS)
         record_id = rid_el.text.strip() if rid_el is not None and rid_el.text else None
-    except Exception:
-        record_id = None
 
     if record_id:
         event_id = f"evt-4625-{record_id}"
     else:
-        h = hashlib.sha1((str(time_str) + host + user + src_ip + raw_xml[:200]).encode("utf-8")).hexdigest()[:10]
-        event_id = f"evt-4625-{h}"
+        seed = {
+            "time": str(time_str),
+            "host": host,
+            "user": user,
+            "src_ip": src_ip,
+            "raw_prefix": raw_xml[:200],
+        }
+        event_id = f"evt-4625-{stable_hash(seed)[:10]}"
 
     severity = infer_severity_4625(user=user, logon_type=logon_type, status=status, sub_status=sub_status)
 
@@ -215,19 +235,17 @@ def detect_blocked_override_attempts(meta: dict, blocked_fields: list) -> list:
     return attempts
 
 
+def stable_hash(obj: dict) -> str:
+    encoded = json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def compute_evidence_hash(raw_log: str, original: dict) -> str:
     payload = {
         "raw_log": normalize_text(raw_log),
         "original": original or {},
     }
-    encoded = json.dumps(
-        payload,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=True,
-        default=str,
-    ).encode("utf-8")
-    return hashlib.sha256(encoded).hexdigest()
+    return stable_hash(payload)
 
 
 def utc_now_iso() -> str:
@@ -587,8 +605,73 @@ def assess_action_risk(action: str) -> dict:
     return {"risk": "Low", "rollback": "Document action and monitor for impact."}
 
 
-ORCH_URL = os.getenv("ORCH_URL", "http://localhost:8080")
-ORCH_ENDPOINT = f"{ORCH_URL.rstrip('/')}/api/v2/orchestrate"
+_LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+_DENY_HOSTS = {"0.0.0.0", "::", "::0", "169.254.169.254"}
+ORCH_BASE_URL = ""
+ORCH_ENDPOINT = ""
+
+
+def _parse_allowed_hosts() -> set:
+    allowed_env = os.getenv("ALLOWED_ORCH_HOSTS", "").strip()
+    allowed = {host.strip().lower().rstrip(".") for host in allowed_env.split(",") if host.strip()}
+    return allowed or set(_LOCAL_HOSTS)
+
+
+def _orch_regulated_mode() -> bool:
+    return os.getenv("ORCH_REGULATED_MODE", "0") == "1"
+
+
+def normalize_and_validate_orch_base_url(url: str, regulated_mode: bool) -> str:
+    raw = (url or "").strip()
+    if not raw:
+        raise ValueError("ORCH_URL is empty")
+
+    parsed = urlparse(raw)
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError("ORCH_URL must be http or https")
+    if not parsed.hostname:
+        raise ValueError("ORCH_URL missing hostname")
+    if parsed.path not in ("", "/") or parsed.params or parsed.query or parsed.fragment:
+        raise ValueError("ORCH_URL must not include path, query, params, or fragment")
+
+    host = parsed.hostname.lower().rstrip(".")
+    if host in _DENY_HOSTS:
+        raise ValueError(f"ORCH_URL host not allowed: {host}")
+
+    try:
+        port_num = parsed.port
+    except ValueError:
+        raise ValueError("ORCH_URL has invalid port")
+
+    allowed_hosts = _parse_allowed_hosts()
+    host_with_port = f"{host}:{port_num}" if port_num else None
+    if host not in allowed_hosts and (host_with_port not in allowed_hosts if host_with_port else True):
+        raise ValueError(f"ORCH_URL host not allowed: {host}")
+
+    if regulated_mode and host not in _LOCAL_HOSTS and parsed.scheme != "https":
+        raise ValueError("Regulated mode requires https for non-local ORCH_URL")
+
+    if port_num is not None and not (1 <= port_num <= 65535):
+        raise ValueError("ORCH_URL port out of range")
+
+    host_for_url = host
+    if ":" in host and not host.startswith("["):
+        host_for_url = f"[{host}]"
+
+    port = f":{port_num}" if port_num else ""
+    return f"{parsed.scheme}://{host_for_url}{port}"
+
+
+def get_orch_base_url() -> str:
+    return normalize_and_validate_orch_base_url(
+        os.getenv("ORCH_URL", "http://localhost:8080"),
+        _orch_regulated_mode(),
+    )
+
+
+def get_orch_endpoint() -> str:
+    return f"{get_orch_base_url()}/api/v2/orchestrate"
+
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 BOTSV3_DIR = os.path.join(ROOT_DIR, "datasets", "botsv3")
 SCENARIO_DIR = os.path.join(BOTSV3_DIR, "scenarios")
@@ -603,7 +686,8 @@ st.title("GATRA Orchestrator Dashboard (Streamlit)")
 
 # ---------- Helpers ----------
 def post_orchestrate(payload: dict) -> dict:
-    r = requests.post(ORCH_ENDPOINT, json=payload, timeout=20)
+    endpoint = get_orch_endpoint()
+    r = requests.post(endpoint, json=payload, timeout=20)
     r.raise_for_status()
     return r.json()
 
@@ -814,12 +898,21 @@ def render_recommendations(resp: dict):
 # ---------- UI ----------
 with st.sidebar:
     st.header("Settings")
-    api = st.text_input("API Base URL", value=ORCH_URL)
-    if api:
-        ORCH_URL = api.rstrip("/")
-    endpoint = st.text_input("API Endpoint", value=ORCH_ENDPOINT)
-    if endpoint:
-        ORCH_ENDPOINT = endpoint
+    override_mode = st.selectbox("Override mode", ["Ops/Demo", "Customer/Regulated"], index=0)
+    regulated_mode = override_mode == "Customer/Regulated"
+    orch_error = None
+    try:
+        ORCH_BASE_URL = get_orch_base_url()
+        ORCH_ENDPOINT = f"{ORCH_BASE_URL}/api/v2/orchestrate"
+    except ValueError as exc:
+        ORCH_BASE_URL = ""
+        ORCH_ENDPOINT = ""
+        orch_error = str(exc)
+
+    st.code(ORCH_BASE_URL or "ORCH_URL invalid", language="text")
+    st.code(ORCH_ENDPOINT or "ORCH_ENDPOINT unavailable", language="text")
+    if orch_error:
+        st.error(f"Orchestrator URL error: {orch_error}")
 
     st.divider()
     st.header("Test Input")
@@ -899,8 +992,6 @@ with st.sidebar:
     )
     override_actor = st.text_input("Override actor", value="", disabled=not override_enable)
 
-    override_mode = st.selectbox("Override mode", ["Ops/Demo", "Customer/Regulated"], index=0)
-
     show_payload_panel = st.checkbox("Show full audit detail", value=False)
 
     def _has_text(value: str) -> bool:
@@ -920,7 +1011,6 @@ with st.sidebar:
     }
 
     has_override_inputs = any(_has_text(str(value)) for value in override_inputs.values())
-    regulated_mode = override_mode == "Customer/Regulated"
     override_enabled = override_enable
 
     missing_required = []
@@ -935,6 +1025,10 @@ with st.sidebar:
     block_orchestrate = False
     block_reason = ""
 
+    if orch_error:
+        block_orchestrate = True
+        block_reason = f"Orchestrator URL invalid: {orch_error}"
+
     if regulated_mode and has_override_inputs and not override_enabled:
         block_orchestrate = True
         block_reason = "Overrides entered but not enabled. Check 'I am making an operational override' to proceed."
@@ -946,7 +1040,7 @@ with st.sidebar:
     policy_block_record = None
     if block_orchestrate and regulated_mode:
         attempted_overrides = {key: value for key, value in override_inputs.items() if str(value).strip()}
-        attempted_overrides_hash = hashlib.sha256(safe_compact(attempted_overrides).encode("utf-8")).hexdigest()
+        attempted_overrides_hash = stable_hash(attempted_overrides)
         evidence_meta_preview = try_parse_json(metadata_json) if metadata_json.strip() else {}
         evidence_meta_preview = evidence_meta_preview if isinstance(evidence_meta_preview, dict) else {}
         evidence_original_preview = {

@@ -301,6 +301,7 @@ def classify_threat(
     c2_score = len(c2_signals)
     exfil_score = len(exfil_signals)
 
+    classification = "unknown_security_event"
     tie_breaker_applied = False
     tie_breaker_rule = "highest_score"
     if max(login_score, c2_score, exfil_score) == 0:
@@ -987,6 +988,7 @@ class GATRASuperAgent:
         # Determine event type
         event_type = event.event_type.lower()
         detected_pattern = None
+        required_domains = []
         
         for pattern_name, pattern_config in intent_patterns.items():
             if any(keyword in event_type for keyword in pattern_config['keywords']):
