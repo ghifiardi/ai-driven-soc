@@ -434,3 +434,10 @@ class MSSPPlatformServer:
 if __name__ == "__main__":
     server = MSSPPlatformServer()
     server.run()
+
+# --- ASGI entrypoint for Uvicorn/Gunicorn ---
+def create_app():
+    return MSSPPlatformServer().app
+
+# Default attribute name for uvicorn: "module:app"
+app = create_app()
