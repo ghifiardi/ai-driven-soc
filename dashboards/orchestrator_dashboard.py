@@ -1,5 +1,6 @@
 import json
 import hashlib
+import logging
 import os
 import socket
 import uuid
@@ -19,6 +20,7 @@ except Exception:
     safe_xml_fromstring = None  # type: ignore
 
 WIN_EVT_NS = {"ev": "http://schemas.microsoft.com/win/2004/08/events/event"}
+logger = logging.getLogger(__name__)
 
 
 def _safe_int(v, default: int = 0) -> int:
@@ -342,11 +344,11 @@ def compute_kpis(incidents: list, policy_blocks: list) -> dict:
     for row in incidents:
         if row.get("risk_level") == "CRITICAL" and row.get("created_at"):
             try:
-                created_dt = datetime.fromisoformat(row["created_at"])
+                created_dt = datetime.fromisoformat(row.get("created_at", "") or "")
                 if created_dt.date() == now.date():
                     critical_today += 1
-            except Exception:
-                pass
+            except (ValueError, TypeError) as exc:
+                logger.debug("compute_kpis: invalid created_at=%r (%s)", row.get("created_at"), exc)
         if isinstance(row.get("confidence"), (int, float)):
             confidence_values.append(row["confidence"])
     avg_confidence = sum(confidence_values) / len(confidence_values) if confidence_values else 0
