@@ -162,7 +162,8 @@ def main():
     publisher = pubsub_v1.PublisherClient()
     subscriber = pubsub_v1.SubscriberClient()
 
-    for tenant in manager.list_tenants():
+    for tenant_id in manager.list_tenants():
+        tenant = manager.get_tenant(tenant_id)
         logger.info(f"Initializing resources for tenant: {tenant.tenant_id}")
         create_bq_resources(bq_client, tenant)
         create_pubsub_resources(publisher, subscriber, tenant)

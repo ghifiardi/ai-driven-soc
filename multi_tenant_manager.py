@@ -18,6 +18,10 @@ class TenantConfigError(ValueError):
     """Raised when the tenant configuration is invalid."""
 
 
+class TenantNotFoundError(KeyError):
+    """Raised when a tenant_id is missing from the configuration."""
+
+
 @dataclass(frozen=True)
 class TenantTables:
     events: str
@@ -84,10 +88,10 @@ class MultiTenantConfig:
         try:
             return self.tenants[tenant_key]
         except KeyError as exc:
-            raise TenantConfigError(f"Unknown tenant_id '{tenant_key}'") from exc
+            raise TenantNotFoundError(f"Unknown tenant_id '{tenant_key}'") from exc
 
-    def list_tenants(self) -> Iterable[TenantConfig]:
-        return self.tenants.values()
+    def list_tenants(self) -> list[str]:
+        return sorted(self.tenants.keys())
 
     def bigquery_fqn(self, tenant_id: str, table_key: str) -> str:
         tenant = self.get_tenant(tenant_id)
@@ -149,7 +153,7 @@ class MultiTenantManager:
     def get_tenant(self, tenant_id: Optional[str] = None) -> TenantConfig:
         return self._config.get_tenant(tenant_id)
 
-    def list_tenants(self):
+    def list_tenants(self) -> list[str]:
         return self._config.list_tenants()
 
     def bigquery_fqn(self, tenant_id: str, table_key: str) -> str:
@@ -168,8 +172,12 @@ class MultiTenantManager:
                 return tenant.region
         return self._config.defaults.location
 
+    @property
     def default_tenant_id(self) -> str:
         return self._config.default_tenant_id
+
+    def get_default_tenant_id(self) -> str:
+        return self.default_tenant_id
 
     def tenants_count(self) -> int:
         return len(self._config.tenants)
@@ -242,7 +250,8 @@ class MultiTenantManager:
             )
 
         seen_datasets: Dict[str, str] = {}
-        for tenant in config.list_tenants():
+        for tenant_id in config.list_tenants():
+            tenant = config.get_tenant(tenant_id)
             if not tenant.dataset or not tenant.results_dataset:
                 raise TenantConfigError(f"Tenant '{tenant.tenant_id}' missing dataset definitions.")
 
@@ -325,5 +334,3 @@ class MultiTenantManager:
         
         with config_path.open("w", encoding="utf-8") as handle:
             json.dump(config_dict, handle, indent=2)
-
-

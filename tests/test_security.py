@@ -173,7 +173,7 @@ class TestAuthenticationSecurity:
             try:
                 content = path.read_text()
 
-                # Check for 'algorithm="none"' or similar
+                # Check for algorithm set to none (insecure)
                 if re.search(r'algorithm\s*=\s*["\']none["\']', content, re.IGNORECASE):
                     pytest.fail(f"Insecure JWT algorithm 'none' found in {path}")
 

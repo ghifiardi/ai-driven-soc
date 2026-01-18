@@ -406,7 +406,8 @@ class MSSPPlatformServer:
         @timed_operation("token_exchange")
         async def get_token(x_api_key: str = Header(...)):
             """Exchange API key for JWT token."""
-            for tenant in self.tenant_manager.list_tenants():
+            for tenant_id in self.tenant_manager.list_tenants():
+                tenant = self.tenant_manager.get_tenant(tenant_id)
                 if tenant.api_key == x_api_key:
                     token = self._create_access_token(tenant.tenant_id)
                     logger.info("Token issued", tenant_id=tenant.tenant_id)
@@ -431,7 +432,8 @@ class MSSPPlatformServer:
                 raise HTTPException(status_code=403, detail="Admin access required")
 
             tenants = []
-            for t in self.tenant_manager.list_tenants():
+            for tenant_id in self.tenant_manager.list_tenants():
+                t = self.tenant_manager.get_tenant(tenant_id)
                 tenants.append({
                     "tenant_id": t.tenant_id,
                     "display_name": t.display_name,
