@@ -72,3 +72,4 @@ dist/
 chronicle-key.json
 *chronicle*.json
 dashboards/chronicle-key.json
+sa-gatra-bigquery_*.json
