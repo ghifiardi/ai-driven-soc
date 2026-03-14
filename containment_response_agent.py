@@ -9,6 +9,7 @@ Core Responsibilities:
 - Tracking of response actions and outcomes
 """
 
+import hashlib
 import os
 import json
 import base64
@@ -31,12 +32,30 @@ except ImportError:
     JIRA = None
 from enum import Enum
 
+import numpy as np
+
+from gatra_intelligence.memory.agent_db import AgentDB, ThreatCategory, MemoryTier
+from gatra_intelligence.routing.model_router import GATRAModelRouter, AgentType, TaskType
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger("ContainmentResponseAgent")
+
+def _cra_embed(text: str, dim: int = 384) -> np.ndarray:
+    """Lightweight embedding for CRA incident text."""
+    try:
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        return np.asarray(_model.encode(text, normalize_embeddings=True), dtype=np.float32)
+    except ImportError:
+        h = hashlib.sha512(text.encode()).digest()
+        rng = np.random.RandomState(int.from_bytes(h[:4], "big"))
+        v = rng.randn(dim).astype(np.float32)
+        return v / (np.linalg.norm(v) + 1e-9)
+
 
 class RiskLevel(Enum):
     """Risk levels for containment actions"""
@@ -76,7 +95,14 @@ class ContainmentResponseAgent:
         
         # Initialize API clients
         self._init_api_clients()
-        
+
+        # GATRA Intelligence — memory for past containment outcomes
+        tenant_id = self.config.get("tenant_id", os.getenv("TENANT_ID", "default"))
+        persist_dir = os.getenv("GATRA_MEMORY_DIR", "/var/gatra/memory")
+        self.agent_db = AgentDB(tenant_id=tenant_id, persist_dir=persist_dir)
+        self.router = GATRAModelRouter()
+        self._tenant_id = tenant_id
+
         logger.info("Containment and Response Agent initialized (Lite/Standard)")
     
     def _load_config(self, config_path: str) -> Dict:
@@ -187,7 +213,32 @@ class ContainmentResponseAgent:
         
         # Send to reporting topic
         self._send_to_reporting(response_results)
-        
+
+        # --- Store containment outcome in AgentDB ---
+        try:
+            severity_map = {"low": 3.0, "medium": 5.0, "high": 8.0, "critical": 10.0}
+            severity_num = severity_map.get(
+                incident.get("severity", "medium"), 5.0
+            )
+            incident_text = json.dumps(incident, default=str)
+            self.agent_db.store(
+                embedding=_cra_embed(incident_text),
+                category=ThreatCategory.INCIDENT,
+                content={
+                    "alert_id": incident_id,
+                    "playbook_name": response_results["playbook_name"],
+                    "containment_status": response_results["containment_status"],
+                    "actions_count": len(response_results["actions_executed"]),
+                    "attack_type": incident.get("analysis", {}).get("attack_type", ""),
+                },
+                severity=severity_num,
+                tags=[a["action"] for a in response_results["actions_executed"]],
+                tier=MemoryTier.EPISODIC,
+            )
+            logger.info("Stored containment outcome for %s in AgentDB", incident_id)
+        except Exception as e:
+            logger.warning("Failed to store containment outcome in AgentDB: %s", e)
+
         return response_results
     
     def _create_incident_record(self, incident: Dict) -> firestore.DocumentReference:
@@ -219,18 +270,35 @@ class ContainmentResponseAgent:
         return incident_ref
     
     def _select_playbook(self, incident: Dict) -> Tuple[str, List[Dict]]:
-        """Select the appropriate playbook for the incident
-        
-        Args:
-            incident: Incident data
-            
-        Returns:
-            Tuple of (playbook_name, playbook_actions)
+        """Select the appropriate playbook for the incident.
+
+        Checks AgentDB for past containment outcomes on similar incidents
+        to inform playbook selection.
         """
-        # Extract the attack type from the incident
         analysis = incident.get("analysis", {})
         attack_type = analysis.get("attack_type", "").lower().replace(" ", "_")
-        
+
+        # --- Memory lookup: past containment outcomes for similar incidents ---
+        try:
+            incident_text = json.dumps(incident, default=str)
+            query_vec = _cra_embed(incident_text)
+            similar = self.agent_db.retrieve(
+                query_embedding=query_vec, k=3, min_severity=5,
+            )
+            if similar:
+                past_playbooks = [
+                    r.payload.get("playbook_name", "unknown") for r in similar
+                ]
+                past_statuses = [
+                    r.payload.get("containment_status", "unknown") for r in similar
+                ]
+                logger.info(
+                    "Memory: %d similar past incidents — playbooks=%s statuses=%s",
+                    len(similar), past_playbooks, past_statuses,
+                )
+        except Exception as e:
+            logger.warning("Memory lookup failed in _select_playbook: %s", e)
+
         # Find a matching playbook or use default
         if attack_type in self.config["playbooks"]:
             playbook_name = attack_type
@@ -238,7 +306,7 @@ class ContainmentResponseAgent:
         else:
             playbook_name = "default"
             playbook = self.config["playbooks"]["default"]
-        
+
         logger.info(f"Selected playbook: {playbook_name}")
         return (playbook_name, playbook)
     

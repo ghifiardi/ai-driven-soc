@@ -9,6 +9,7 @@ Core Responsibilities:
 - Suggestion of improvements to the overall workflow
 """
 
+import hashlib
 import os
 import json
 import base64
@@ -27,6 +28,25 @@ import pickle
 import matplotlib.pyplot as plt
 import seaborn as sns
 import io
+
+from gatra_intelligence.memory.agent_db import AgentDB, ThreatCategory, MemoryTier
+from gatra_intelligence.learning.self_learning_loop import (
+    GATRASelfLearningLoop,
+    PPORewardSignal,
+)
+
+def _cla_embed(text: str, dim: int = 384) -> np.ndarray:
+    """Lightweight embedding for CLA feedback text."""
+    try:
+        from sentence_transformers import SentenceTransformer
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+        return np.asarray(_model.encode(text, normalize_embeddings=True), dtype=np.float32)
+    except ImportError:
+        h = hashlib.sha512(text.encode()).digest()
+        rng = np.random.RandomState(int.from_bytes(h[:4], "big"))
+        v = rng.randn(dim).astype(np.float32)
+        return v / (np.linalg.norm(v) + 1e-9)
+
 
 # Define BigQueryClient class
 class BigQueryClient:
@@ -167,9 +187,19 @@ class ContinuousLearningAgent:
         
         # Initialize Vertex AI if needed
         if self.config.get("use_vertex_ai", True):
-            aiplatform.init(project=self.config["project_id"], 
+            aiplatform.init(project=self.config["project_id"],
                          location=self.config["location"])
-        
+
+        # GATRA Intelligence — AgentDB + self-learning loop
+        self._tenant_id = self.config.get(
+            "tenant_id", os.getenv("TENANT_ID", "default")
+        )
+        persist_dir = os.getenv("GATRA_MEMORY_DIR", "/var/gatra/memory")
+        self.agent_db = AgentDB(
+            tenant_id=self._tenant_id, persist_dir=persist_dir,
+        )
+        self.learning_loop = GATRASelfLearningLoop(self.agent_db)
+
         logger.info("Continuous Learning Agent initialized successfully")
     
     def _load_config(self, config_path: str) -> Dict:
@@ -256,14 +286,36 @@ class ContinuousLearningAgent:
         
         # If the feedback confirms a true positive, provide positive reinforcement
         if feedback_data.get("is_true_positive") is True:
-            # Assuming the feedback could come from various agents,
-            # we send positive feedback specifically for LangGraph ADA.
-            # This could be refined with a 'source_agent' field in feedback_data.
             self.provide_positive_feedback(feedback_data)
+
+        # --- Store feedback in AgentDB for learning loop ---
+        try:
+            outcome = "true_positive" if is_true_positive else "false_positive"
+            severity_str = feedback_data.get("severity", "medium")
+            severity_map = {"low": 3.0, "medium": 5.0, "high": 8.0, "critical": 10.0}
+            severity_num = severity_map.get(severity_str, 5.0)
+
+            feedback_text = json.dumps(feedback_data, default=str)
+            self.agent_db.store(
+                embedding=_cla_embed(feedback_text),
+                category=ThreatCategory.INCIDENT,
+                content={
+                    "alert_id": alert_id,
+                    "outcome": outcome,
+                    "confidence": confidence,
+                    "severity": severity_str,
+                    "source": feedback_data.get("source", "unknown"),
+                },
+                severity=severity_num,
+                tier=MemoryTier.EPISODIC,
+            )
+            logger.info("Stored feedback for %s in AgentDB (%s)", alert_id, outcome)
+        except Exception as e:
+            logger.warning("Failed to store feedback in AgentDB: %s", e)
 
         # Check if we have enough feedback to trigger evaluation
         self._check_feedback_threshold()
-        
+
         return {
             "alert_id": alert_id,
             "processed": True,
@@ -1603,11 +1655,28 @@ class ContinuousLearningAgent:
     
     def run_scheduled_tasks(self):
         """Run all scheduled tasks
-        
+
         This would be triggered by a scheduled Cloud Function or similar
         """
         logger.info("Running scheduled CLA tasks")
-        
+
+        # --- GATRA learning cycle: RETRIEVE→JUDGE→DISTILL→CONSOLIDATE ---
+        try:
+            context_vec = np.random.randn(self.agent_db.dim).astype(np.float32)
+            context_vec /= np.linalg.norm(context_vec) + 1e-9
+            cycle_result = self.learning_loop.run_cycle(
+                self._tenant_id, context_vec, force_consolidate=True,
+            )
+            logger.info(
+                "Learning cycle %s: retrieved=%d kept=%d distilled=%d",
+                cycle_result.cycle_id, cycle_result.retrieved_count,
+                cycle_result.judged_kept, cycle_result.distilled_count,
+            )
+            # Persist memory to disk after consolidation
+            self.agent_db.save_to_disk()
+        except Exception as e:
+            logger.error(f"Error in GATRA learning cycle: {e}")
+
         # Run all scheduled tasks
         try:
             eval_result = self.evaluate_detection_model()
@@ -1620,14 +1689,14 @@ class ContinuousLearningAgent:
             logger.info(f"Pattern analysis result: {pattern_result}")
         except Exception as e:
             logger.error(f"Error in pattern analysis: {e}")
-        
+
         # Generate improvement recommendations
         try:
             improve_result = self.generate_system_improvements()
             logger.info(f"Improvement recommendations: {improve_result}")
         except Exception as e:
             logger.error(f"Error generating improvements: {e}")
-        
+
         return {
             "status": "completed",
             "timestamp": datetime.now(timezone.utc).isoformat()
