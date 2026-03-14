@@ -35,6 +35,9 @@ import pickle
 import joblib
 import redis
 from bigquery_client import BigQueryClient
+from gatra_intelligence.routing.model_router import (
+    GATRAModelRouter, AgentType, TaskType, ClaudeModel,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -96,6 +99,7 @@ class ADAConfig:
     project_id: str = os.getenv("BIGQUERY_PROJECT_ID", "chronicle-dev-2be9")
     location: str = os.getenv("GCP_LOCATION", "asia-southeast2")
     redis_url: str = os.getenv("REDIS_URL", "")
+    tenant_id: str = os.getenv("TENANT_ID", "default")
     
     # Model configuration
     model_path: str = "anomaly-detection/isolation_forest.pkl"
@@ -143,6 +147,9 @@ class LangGraphAnomalyDetectionAgent:
         # Fallback for supervised stage if needed
         self.supervised_model = self._load_model(self.config.supervised_model_path, model_type='joblib')
 
+        # Model router — adaptive Claude Haiku/Sonnet/Opus selection
+        self.router = GATRAModelRouter()
+
         self.workflow = self._build_workflow()
         logger.info("LangGraph ADA with GATRA initialized successfully")
 
@@ -160,6 +167,7 @@ class LangGraphAnomalyDetectionAgent:
         workflow = StateGraph(ADAState)
         workflow.add_node("preprocess_data", self.preprocess_data_node)
         workflow.add_node("extract_features", self.extract_features_node)
+        workflow.add_node("pre_filter", self.pre_filter_node)
         workflow.add_node("detect_anomalies_gatra", self.detect_anomalies_gatra_node)
         workflow.add_node("geo_enrichment", self.geo_enrichment_node)
         workflow.add_node("threat_intel_enrichment", self.threat_intel_enrichment_node)
@@ -170,7 +178,8 @@ class LangGraphAnomalyDetectionAgent:
 
         workflow.set_entry_point("preprocess_data")
         workflow.add_edge("preprocess_data", "extract_features")
-        workflow.add_edge("extract_features", "detect_anomalies_gatra")
+        workflow.add_edge("extract_features", "pre_filter")
+        workflow.add_edge("pre_filter", "detect_anomalies_gatra")
         workflow.add_conditional_edges("detect_anomalies_gatra", self.route_after_detection)
         
         workflow.add_edge("geo_enrichment", "aggregate_enrichment")
@@ -206,6 +215,55 @@ class LangGraphAnomalyDetectionAgent:
             
         alert_data["extracted_features"] = features
         alert_data["gatra_vector"] = np.array(feature_vals)
+        return {"alert_data": alert_data}
+
+    def pre_filter_node(self, state: ADAState) -> Dict[str, Any]:
+        """LLM pre-filter: fast classification via routed Claude model."""
+        alert_data = state["alert_data"]
+        features = alert_data.get("extracted_features", {})
+
+        prompt = (
+            "You are a SOC analyst pre-filter. Classify this network event as "
+            "'suspicious' or 'benign' in one word, then a one-sentence reason.\n\n"
+            f"Source IP: {alert_data.get('source_ip', 'N/A')}\n"
+            f"Dest IP: {alert_data.get('dest_ip', 'N/A')}\n"
+            f"Protocol: {alert_data.get('protocol', 'N/A')}\n"
+            f"Port: {alert_data.get('port', 'N/A')}\n"
+            f"Bytes sent: {alert_data.get('bytes_sent', 0)}\n"
+            f"Bytes received: {alert_data.get('bytes_received', 0)}\n"
+            f"Duration: {alert_data.get('duration', 0)}\n"
+            f"Features: {json.dumps(features, default=str)}"
+        )
+
+        # Derive initial severity estimate from raw features
+        bytes_sent = float(alert_data.get("bytes_sent") or 0)
+        severity_estimate = min(10.0, bytes_sent / 10000) if bytes_sent else 2.0
+
+        try:
+            result = self.router.call(
+                tenant_id=self.config.tenant_id,
+                agent=AgentType.ADA,
+                task_type=TaskType.PRE_FILTER,
+                prompt=prompt,
+                severity=severity_estimate,
+                system_prompt="Respond with exactly: <suspicious|benign>: <reason>",
+                max_tokens=100,
+                request_id=f"pre-filter-{alert_data.get('log_id', '')}",
+            )
+            llm_verdict = result["content"].strip().lower()
+            logger.info(
+                "Pre-filter verdict: %s (model=%s, cost=$%.4f)",
+                llm_verdict, result["model"], result["cost_usd"],
+            )
+            alert_data["pre_filter"] = {
+                "verdict": llm_verdict,
+                "model": result["model"],
+                "cost_usd": result["cost_usd"],
+            }
+        except Exception as e:
+            logger.warning("Pre-filter LLM call failed, proceeding without: %s", e)
+            alert_data["pre_filter"] = {"verdict": "suspicious", "model": "fallback", "cost_usd": 0.0}
+
         return {"alert_data": alert_data}
 
     def detect_anomalies_gatra_node(self, state: ADAState) -> Dict[str, Any]:
@@ -258,7 +316,31 @@ class LangGraphAnomalyDetectionAgent:
     def validate_detection_node(self, state: ADAState) -> Dict[str, Any]:
         detection_result = state.get("detection_result")
         # GATRA handles validation via its ensemble, so we just check the flag here
-        should_publish = detection_result.get("is_anomaly", False)
+        is_anomaly = detection_result.get("is_anomaly", False)
+
+        # Cross-check with pre-filter verdict for reward signal
+        pre_filter = state["alert_data"].get("pre_filter", {})
+        verdict = pre_filter.get("verdict", "")
+        pre_filter_suspicious = "suspicious" in verdict
+
+        # Reward the router: agreement = +1, disagreement = -0.5
+        if pre_filter_suspicious == is_anomaly:
+            reward = 1.0
+        else:
+            reward = -0.5
+            logger.info(
+                "Pre-filter/GATRA disagreement: pre_filter=%s gatra_anomaly=%s",
+                verdict, is_anomaly,
+            )
+        # Feed reward back (use a synthetic decision for the pre-filter call)
+        severity = float(detection_result.get("anomaly_score", 0)) * 10
+        decision = self.router.route(
+            self.config.tenant_id, AgentType.ADA,
+            TaskType.PRE_FILTER, severity=severity,
+        )
+        self.router.feedback(decision, reward)
+
+        should_publish = is_anomaly
         return {"should_publish": should_publish}
 
     def route_after_validation(self, state: ADAState) -> str:

@@ -63,6 +63,11 @@ networkx>=3.2.0
 # Causal Inference
 dowhy>=0.11.0
 
+# GATRA Intelligence (memory, routing, learning)
+hnswlib>=0.7.0
+anthropic>=0.40.0
+sentence-transformers>=2.2.0
+
 # Utilities
 pydantic>=2.5.0
 python-dotenv>=1.0.0
