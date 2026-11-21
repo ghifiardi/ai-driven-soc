@@ -1,0 +1,3 @@
+[submodule "digital_twin_SOC_sowcase"]
+	path = digital_twin_SOC_sowcase
+	url = https://github.com/ghifiardi/digital_twin_SOC_sowcase.git
