@@ -29,13 +29,12 @@ Redis: CI provides a service, but nothing in `tests/` connects to it; `tests/con
 `redis.asyncio.from_url` (`mock_redis` fixture). Tests passed with no Redis running.
 
 ## Test baseline (`pytest tests/ -q`, Python 3.11, CI env vars above, no Redis)
-Result: **2 failed, 24 passed, 1 skipped, 1 error** (28 collected). Not fixed here.
-- `test_botsv3_scenarios.py::test_botsv3_scenario_files_present` FAILED: `datasets/botsv3/scenarios/*.json` (login_anomaly, c2_beacon, exfil_s3) are not in the repo (missing data).
-- `test_botsv3_scenarios.py::test_botsv3_scenario_schema` FAILED: same missing scenario files (FileNotFoundError).
-- `test_botsv3_scenarios.py::test_botsv3_orchestrator_post_and_classification` ERROR: fixture `orchestrator_base_url` is not defined (it also needs a live orchestrator at `/api/v2/orchestrate`).
+Result: **24 passed, 4 skipped, 0 failed, 0 errors** (28 collected). Every test must pass; a failure is yours to fix.
+- `test_botsv3_scenarios.py`: 3 skipped. The BOTSv3 scenario files (`datasets/botsv3/scenarios/{login_anomaly,c2_beacon,exfil_s3}.json`) are not in the repo; the skip reason names them.
+- `test_botsv3_scenarios.py::test_botsv3_orchestrator_post_and_classification` is integration-only: it also needs `ORCHESTRATOR_BASE_URL` pointing at a live orchestrator (`/api/v2/orchestrate`).
 - `test_optional_dependencies.py` 1 skipped: numpy is installed, so the "numpy missing" case is skipped.
 
-Agent PRs run this suite as the gate; these 3 pre-existing failures are expected, anything new is yours.
+To run the BOTSv3 tests, put the scenario files in place and run `ORCHESTRATOR_BASE_URL=http://host:port pytest tests/test_botsv3_scenarios.py -ra`.
 
 ## Hard rules
 - Never change `deploy/`, `deployment_package/`, `production/`, `Dockerfile*`, `*.sh`, `.github/workflows/`, `.env*`: `cd.yml` ships to GCP production and the shell scripts SSH into live hosts.
