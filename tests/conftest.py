@@ -31,6 +31,18 @@ def event_loop():
     loop.close()
 
 
+@pytest.fixture
+def orchestrator_base_url() -> str:
+    """Base URL of a live orchestrator for integration tests.
+
+    Skips unless ORCHESTRATOR_BASE_URL is set, so the default run never needs a server.
+    """
+    url = os.environ.get("ORCHESTRATOR_BASE_URL", "").strip().rstrip("/")
+    if not url:
+        pytest.skip("integration: set ORCHESTRATOR_BASE_URL to run against a live orchestrator")
+    return url
+
+
 # =============================================================================
 # Mock Fixtures
 # =============================================================================
